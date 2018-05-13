@@ -6,18 +6,17 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class Bot extends TelegramLongPollingBot {
-
+    private Manager manager = new Manager();
     @Override
     public void onUpdateReceived(Update update) {
-
-        System.out.println(update.toString());
+        Long chatId = update.getMessage().getChatId();
+        System.out.println(chatId);
         // We check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
-            SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
-                    .setChatId(update.getMessage().getChatId())
-                    .setText(update.getMessage().getText());
+            manager.pushMessage(update.getMessage());
+            SendMessage sendMessage = new SendMessage().setText(Long.toString(chatId)).setChatId(update.getMessage().getChatId());
             try {
-                execute(message); // Call method to send the message
+                execute(sendMessage);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
@@ -38,6 +37,6 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "token";
+        return "522474427:AAHsCXHRTz4UYhOQovlGQdNheAA2qBQh-rY";
 }
 }

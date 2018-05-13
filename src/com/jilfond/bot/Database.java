@@ -5,9 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class ApartmentsDatabase {
+public class Database {
     private Connection connection;
-    private final String databaseFileName = "database.s3db";
+    private final String databaseFileName = "apartments.db";
 
     private void createMainTableIfNotExist() throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS apartments (\n"
@@ -20,7 +20,7 @@ public class ApartmentsDatabase {
     }
 
 
-    public ApartmentsDatabase() {
+    public Database() {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFileName);
             String catalog = connection.getCatalog();
@@ -29,7 +29,7 @@ public class ApartmentsDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println("ApartmentsDatabase was created");
+        System.out.println("Database was created");
     }
 
 
