@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 public class ApartmentsDatabase {
     private Connection connection;
-    private final String databaseFileName = "apartments.db";
+    private final String databaseFileName = "database.s3db";
 
     private void createMainTableIfNotExist() throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS apartments (\n"
