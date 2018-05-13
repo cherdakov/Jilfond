@@ -7,6 +7,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class Bot extends TelegramLongPollingBot {
     private Manager manager = new Manager();
+
     @Override
     public void onUpdateReceived(Update update) {
         Long chatId = update.getMessage().getChatId();
@@ -27,7 +28,6 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onClosing() {
         System.out.println("onClosing");
-        super.onClosing();
     }
 
     @Override
@@ -38,5 +38,5 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public String getBotToken() {
         return "522474427:AAHsCXHRTz4UYhOQovlGQdNheAA2qBQh-rY";
-}
+    }
 }

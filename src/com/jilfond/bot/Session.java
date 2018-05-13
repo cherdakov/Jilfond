@@ -3,30 +3,14 @@ package com.jilfond.bot;
 import org.telegram.telegrambots.api.objects.Message;
 
 public class Session extends Thread {
-    //TODO::2 customer session and saler session
     Database database;
     User user;
-    String state;
 
     Session(Database database) {
         this.database = database;
-        run();
     }
 
-    @Override
-    public void run() {
-        super.run();
-        while (true) {
-
-        }
-    }
-
-    public void pushMessage(Message message) {
-        switch (state) {
-            case "shit":
-                break;
-            default:
-                break;
-        }
+    public void setCurrentMessage(Message message) {
+        //pure virtual ¯\_(ツ)_/¯
     }
 }
