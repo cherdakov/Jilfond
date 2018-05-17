@@ -5,7 +5,7 @@ import java.util.LinkedList;
 
 public class Database {
     private Connection connection;
-    private final String databaseFileName = "apartments.db";
+    private final String databaseFileName = "database.s3db";
 
 
     public Database() {
