@@ -5,6 +5,7 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 
 
 import java.util.LinkedList;
@@ -14,15 +15,16 @@ import java.util.TreeMap;
 
 public class Manager {
     private TreeMap<Long, Session> sessions = new TreeMap<>();
+    TelegramLongPollingBot bot;
     Database database = new Database();
-
+    Manager(TelegramLongPollingBot bot) {
+        this.bot = bot;
+    }
     public SendMessage pushMessage(Message message) {
-
         Long chatId = message.getChatId();
         if(message.getText().equals("/start")){
             return sendActionKeyboard(chatId);
         }
-
         if (sessions.containsKey(chatId)) {
             Session session = sessions.get(chatId);
             if(session.getState().equals("SELECTS_AN_ACTION") && message.getText().equals("/cancel")){

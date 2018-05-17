@@ -6,7 +6,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class Bot extends TelegramLongPollingBot {
-    private Manager manager = new Manager();
+    private Manager manager = new Manager(this);
 
     @Override
     public void onUpdateReceived(Update update) {
