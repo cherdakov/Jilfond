@@ -10,7 +10,7 @@ public class Database {
 
     public Database() {
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFileName);
+            connection = getConnection();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -33,9 +33,9 @@ public class Database {
     }
 
     public void addApartment(Apartment apartment){
-        Statement statement = null;
+
         try {
-            statement = connection.createStatement();
+            Statement statement = connection.createStatement();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -43,5 +43,8 @@ public class Database {
     }
     public void addSeller(){
 
+    }
+    Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:sqlite:" + databaseFileName);
     }
 }

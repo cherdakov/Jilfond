@@ -2,36 +2,50 @@ package com.jilfond.bot;
 
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.LinkedList;
 
+
 public class Session {
-    Database database;
-    String state = "SELECTS_AN_ACTION";;
+    private Database database;
+    protected String state = "SELECT_ACTION";
+    Bot bot;
     Long chatId;
     SendMessage answer = new SendMessage();
-    protected Message currentMessage;
+    Thread currentAction;
+    private ReplyKeyboardMarkup selectActionKeyboard;
+    LinkedList<String> actions = new LinkedList<>();
 
-    Session(Database database, Long chatId) {
+    public Session(Database database, Bot bot, Long chatId) {
         this.database = database;
+        this.bot = bot;
         this.chatId = chatId;
         answer.setChatId(chatId);
+        selectActionKeyboard = createSelectActionKeyboard();
+        sendSelectActionRequest();
+    }
+    @Virtual
+    private ReplyKeyboardMarkup createSelectActionKeyboard() {
+
+        actions.add("Add");
+        actions.add("Show");
+        actions.add("Cancel");
+
+        return Utils.makeKeyboard(actions);
     }
 
-    public SendMessage pushMessage(Message message) {
-        //pure virtual ¯\_(ツ)_/¯;
-        return new SendMessage().setChatId(chatId).setText("pushMessage");
+    @Virtual
+    public void pushMessage(Message message) {
+
     }
 
     public String getState() {
         return state;
     }
 
-    public SendMessage getFirstActions() {
-        //pure virtual ¯\_(ツ)_/¯;
-        return new SendMessage().
-                setChatId(chatId).
-                setText("Select action").setReplyMarkup(Utils.makeKeyboard());
+    void sendSelectActionRequest() {
+        bot.sendKeyboard(chatId, "Select Action", selectActionKeyboard);
     }
 
 }

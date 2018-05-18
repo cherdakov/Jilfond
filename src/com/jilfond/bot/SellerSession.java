@@ -5,20 +5,40 @@ import org.telegram.telegrambots.api.objects.Message;
 
 public class SellerSession extends Session {
 
-    SellerSession(Database database, Long chatId) {
-        super(database, chatId);
+    public SellerSession(Database database, Bot bot, Long chatId) {
+        super(database, bot, chatId);
+
     }
+
     @Override
-    public SendMessage pushMessage(Message message) {
-        Thread thread = new Thread(() -> answer.setText("pushMessageInSellerSession"));
-        thread.start();
+    public void pushMessage(Message message) {
         try {
-            thread.join();
+            currentAction.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
-            answer.setText("error");
+        } catch (NullPointerException e){
         }
-        return answer;
+        currentAction = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String text = message.getText();
+                switch (state){
+                    case "SELECT ACTION":
+                        switch (text){
+                            case "Add":
+                                break;
+                            case "Show":
+                                break;
+                            case "Cancel":
+                                //unreachable because this situation is handled by the manager
+                                break;
+                        }
+                        break;
+                }
+                bot.send(answer);
+            }
+        });
+        currentAction.start();
     }
+
 
 }
