@@ -17,8 +17,7 @@ public class Session {
     protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
 
 
-
-    public Session(Database database, Bot bot, Long chatId) {
+    Session(Database database, Bot bot, Long chatId) {
         this.database = database;
         this.bot = bot;
         this.chatId = chatId;
@@ -45,7 +44,7 @@ public class Session {
 
     }
 
-    public String getState() {
+    String getState() {
         return state;
     }
 

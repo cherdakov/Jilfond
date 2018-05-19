@@ -1,10 +1,18 @@
 package com.jilfond.bot;
 
+import org.telegram.telegrambots.api.methods.send.SendContact;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.api.objects.Contact;
+import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.PhotoSize;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updateshandlers.DownloadFileCallback;
+
+import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
     private Manager manager = new Manager(this);
@@ -16,10 +24,19 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+
+        Long chatId = update.getMessage().getChatId();
+        /*
         if (update.hasMessage()) {
             manager.pushMessage(update.getMessage());
         }
-        send(update.getMessage().getChatId(),Integer.toString(update.getMessage().getContact().getUserID()),null);
+        */
+        SendPhoto sendPhotoRequest  = new SendPhoto().setChatId(chatId).setPhoto("AgADAgAD8KgxG-U1CUhM-zZxy4E_7JBTqw4ABOpNLn1DAXgG-8UBAAEC");
+        try {
+            sendPhoto(sendPhotoRequest);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 
     void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){
@@ -40,7 +57,7 @@ public class Bot extends TelegramLongPollingBot {
         send(chatId,text,null);
     }
 
-    static Bot currentBot;
+    private static Bot currentBot;
 
     public static Bot getCurrentBot() {
         return currentBot;

@@ -1,11 +1,11 @@
 package com.jilfond.bot;
 
 import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 public class SellerSession extends Session {
     private Apartment apartment = new Apartment();
-    public SellerSession(Database database, Bot bot, Long chatId) {
+
+    private SellerSession(Database database, Bot bot, Long chatId) {
         super(database, bot, chatId);
     }
 
@@ -13,67 +13,70 @@ public class SellerSession extends Session {
     public void pushMessage(Message message) {
         try {
             currentAction.join();
-        } catch (InterruptedException e) {
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | InterruptedException e) {
+            //its normal situation
         }
-        currentAction = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String text = message.getText();
-
-                switch (state) {
-                    case "SELECT_ACTION":
-                        switch (text) {
-                            case "Add":
-                                sendSendStreetRequest();
-                                break;
-                            case "Show":
-                                break;
-                            case "Cancel":
-                                //unreachable because this situation is handled by the manager
-                                break;
-                        }
-                        break;
-                    case "SEND_STREET":
-                        if (text.equals("Cancel")) {
-                            sendSelectActionRequest();
-                        } else {
-                            apartment.street = text;
-                            sendSendNumberRequest();
-                        }
-                        break;
-                    case "SEND_NUMBER":
-                        if (text.equals("Cancel")) {
-                            sendSelectActionRequest();
-                        } else if (text.equals("Back")) {
+        currentAction = new Thread(() -> {
+            String text = message.getText();
+            switch (state) {
+                case "SELECT_ACTION":
+                    switch (text) {
+                        case "Add":
                             sendSendStreetRequest();
-                        } else {
+                            break;
+                        case "Show":
+                            break;
+                        case "Cancel":
+                            //unreachable because this situation is handled by the manager
+                            break;
+                    }
+                    break;
+                case "SEND_STREET":
+                    if (text.equals("Cancel")) {
+                        sendSelectActionRequest();
+                    } else {
+                        apartment.street = text;
+                        sendSendNumberRequest();
+                    }
+                    break;
+                case "SEND_NUMBER":
+                    switch (text) {
+                        case "Cancel":
+                            sendSelectActionRequest();
+                            break;
+                        case "Back":
+                            sendSendStreetRequest();
+                            break;
+                        default:
                             try {
                                 apartment.number = Integer.parseInt(text);
                                 sendSendPriceRequest();
-                            } catch (NumberFormatException e){
+                            } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
                             }
-
-                        }
-                        break;
-                    case "SEND_PRICE":
-                        if (text.equals("Cancel")) {
+                            break;
+                    }
+                    break;
+                case "SEND_PRICE":
+                    switch (text) {
+                        case "Cancel":
                             sendSelectActionRequest();
-                        } else if (text.equals("Back")) {
+                            break;
+                        case "Back":
                             sendSendNumberRequest();
-                        } else {
+                            break;
+                        default:
                             try {
                                 apartment.price = Integer.parseInt(text);
                                 reply("Done!");
                                 sendSelectActionRequest();
-                            } catch (NumberFormatException e){
+                            } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
                             }
-                        }
-                        break;
-                    case "CONFIRM":
-                }
+                            break;
+                    }
+                    break;
+                case "CONFIRM":
             }
         });
         currentAction.start();
@@ -93,4 +96,5 @@ public class SellerSession extends Session {
         reply("Send me number of house, please", Keyboards.backAndCancel);
         state = "SEND_NUMBER";
     }
+
 }
