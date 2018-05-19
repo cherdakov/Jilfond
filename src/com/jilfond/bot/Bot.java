@@ -19,20 +19,25 @@ public class Bot extends TelegramLongPollingBot {
         if (update.hasMessage()) {
             manager.pushMessage(update.getMessage());
         }
+        send(update.getMessage().getChatId(),Integer.toString(update.getMessage().getContact().getUserID()),null);
     }
 
-    public void send(SendMessage sendMessage) {
+    void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){
         try {
+            SendMessage sendMessage = new SendMessage().
+                    setChatId(chatId).
+                    setText(text);
+            if(keyboard!=null){
+                sendMessage.setReplyMarkup(keyboard);
+            }
             execute(sendMessage);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+
     }
-    void sendKeyboard(Long chatId, String description, ReplyKeyboardMarkup keyboard){
-        send(new SendMessage().
-                setChatId(chatId).
-                setText(description).
-                setReplyMarkup(keyboard));
+    void send(Long chatId, String text){
+        send(chatId,text,null);
     }
 
     static Bot currentBot;

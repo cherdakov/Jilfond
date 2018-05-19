@@ -27,7 +27,7 @@ public class Database {
             String street = resultSet.getString("street");
             Integer number = resultSet.getInt("number");
             Integer price = resultSet.getInt("price");
-            apartmentLinkedList.add(new Apartment(street,number,price,new Seller()));//TODO:replace new Seller with my logic
+            apartmentLinkedList.add(new Apartment(street,number,price));//TODO:replace new Seller with my logic
         }
         return apartmentLinkedList;
     }

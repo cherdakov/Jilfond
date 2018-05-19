@@ -1,11 +1,7 @@
 package com.jilfond.bot;
 
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 
 
 import java.util.LinkedList;
@@ -22,13 +18,14 @@ public class Manager {
     Manager(Bot bot) {
         this.bot = bot;
         selectRoleKeyboardMarkup = createSelectRoleKeyboard();
+
     }
 
     private ReplyKeyboardMarkup createSelectRoleKeyboard() {
         LinkedList<String> roles = new LinkedList<>();
         roles.add("Seller");
         roles.add("Customer");
-        return Utils.makeKeyboard(roles);
+        return Keyboards.make(roles);
     }
 
     public void pushMessage(Message message) {
@@ -64,7 +61,7 @@ public class Manager {
     }
 
     void sendSelectRoleRequest(Long chatId) {
-        bot.sendKeyboard(chatId, "Select Role", selectRoleKeyboardMarkup);
+        bot.send(chatId, "Select Role", selectRoleKeyboardMarkup);
     }
 
 }

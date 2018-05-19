@@ -8,31 +8,36 @@ import java.util.LinkedList;
 
 
 public class Session {
-    private Database database;
+    protected Database database;
     protected String state = "SELECT_ACTION";
-    Bot bot;
-    Long chatId;
-    SendMessage answer = new SendMessage();
-    Thread currentAction;
-    private ReplyKeyboardMarkup selectActionKeyboard;
-    LinkedList<String> actions = new LinkedList<>();
+    protected Bot bot;
+    protected Long chatId;
+    protected Thread currentAction;
+    protected LinkedList<String> actions = new LinkedList<>();
+    protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
+
+
 
     public Session(Database database, Bot bot, Long chatId) {
         this.database = database;
         this.bot = bot;
         this.chatId = chatId;
-        answer.setChatId(chatId);
-        selectActionKeyboard = createSelectActionKeyboard();
         sendSelectActionRequest();
     }
+
+    void reply(String text, ReplyKeyboardMarkup keyboard) {
+        bot.send(chatId,text,keyboard);
+    }
+    void reply(String text) {
+        bot.send(chatId,text);
+    }
+
     @Virtual
     private ReplyKeyboardMarkup createSelectActionKeyboard() {
-
         actions.add("Add");
         actions.add("Show");
         actions.add("Cancel");
-
-        return Utils.makeKeyboard(actions);
+        return Keyboards.make(actions);
     }
 
     @Virtual
@@ -45,7 +50,8 @@ public class Session {
     }
 
     void sendSelectActionRequest() {
-        bot.sendKeyboard(chatId, "Select Action", selectActionKeyboard);
+        state = "SELECT_ACTION";
+        bot.send(chatId, "Select Action", selectActionKeyboard);
     }
 
 }
