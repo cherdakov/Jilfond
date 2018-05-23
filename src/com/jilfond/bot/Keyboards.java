@@ -8,6 +8,7 @@ import java.util.LinkedList;
 public class Keyboards {
     static ReplyKeyboardMarkup onlyCancel = createOnlyCancel();
     static ReplyKeyboardMarkup backAndCancel = createBackAndCancel();
+    static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
 
 
     private static ReplyKeyboardMarkup createOnlyCancel() {
@@ -17,6 +18,13 @@ public class Keyboards {
     }
     private static ReplyKeyboardMarkup createBackAndCancel() {
         LinkedList<String> cancel = new LinkedList<>();
+        cancel.add("Back");
+        cancel.add("Cancel");
+        return make(cancel);
+    }
+    private static ReplyKeyboardMarkup createYesBackAndCancel() {
+        LinkedList<String> cancel = new LinkedList<>();
+        cancel.add("Yes");
         cancel.add("Back");
         cancel.add("Cancel");
         return make(cancel);

@@ -1,9 +1,10 @@
 package com.jilfond.bot;
 
-import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 
 
@@ -17,7 +18,8 @@ public class Session {
     protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
 
 
-    Session(Database database, Bot bot, Long chatId) {
+
+    public Session(Database database, Bot bot, Long chatId) {
         this.database = database;
         this.bot = bot;
         this.chatId = chatId;

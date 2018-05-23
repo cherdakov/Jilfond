@@ -4,21 +4,22 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.TreeMap;
 
 
 public class Manager {
+    private Database database;
     private TreeMap<Long, Session> sessions = new TreeMap<>();
     Bot bot;
-    Database database = new Database();
     ReplyKeyboardMarkup selectRoleKeyboardMarkup;
+    
 
-
-    Manager(Bot bot) {
+    Manager(Bot bot) throws SQLException {
         this.bot = bot;
         selectRoleKeyboardMarkup = createSelectRoleKeyboard();
-
+        database = new Database();
     }
 
     private ReplyKeyboardMarkup createSelectRoleKeyboard() {
@@ -29,6 +30,7 @@ public class Manager {
     }
 
     public void pushMessage(Message message) {
+        Integer userId = message.getFrom().getId();
         Long chatId = message.getChatId();
         if (message.getText().equals("/start")) {
             sendSelectRoleRequest(chatId);

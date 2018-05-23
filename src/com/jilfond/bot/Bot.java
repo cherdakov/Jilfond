@@ -12,12 +12,13 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updateshandlers.DownloadFileCallback;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
     private Manager manager = new Manager(this);
 
-    Bot() {
+    Bot() throws SQLException {
         super();
         currentBot = this;
     }
@@ -26,17 +27,19 @@ public class Bot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
 
         Long chatId = update.getMessage().getChatId();
-        /*
+
         if (update.hasMessage()) {
             manager.pushMessage(update.getMessage());
         }
-        */
+
+        /*
         SendPhoto sendPhotoRequest  = new SendPhoto().setChatId(chatId).setPhoto("AgADAgAD8KgxG-U1CUhM-zZxy4E_7JBTqw4ABOpNLn1DAXgG-8UBAAEC");
         try {
             sendPhoto(sendPhotoRequest);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+        */
     }
 
     void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){

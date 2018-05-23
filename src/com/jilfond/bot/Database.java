@@ -8,42 +8,68 @@ public class Database {
     private final String databaseFileName = "database.s3db";
 
 
-    public Database() {
-        try {
-            connection = getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
+    public Database() throws SQLException {
+        connection = getConnection();
     }
 
-    public LinkedList<Apartment> getApartments(Integer id) throws SQLException {
-        String sql = "SELECT * FROM apartments"+
-                     "WHERE id = "+Integer.toString(id);
+    public LinkedList<Apartment> getApartments(Integer databaseId) throws SQLException {
+        String sql =
+                "SELECT * FROM apartments" +
+                        "WHERE id = " + Integer.toString(databaseId);
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
         LinkedList<Apartment> apartmentLinkedList = new LinkedList<>();
-        while (resultSet.next()){
+        while (resultSet.next()) {
             String street = resultSet.getString("street");
             Integer number = resultSet.getInt("number");
             Integer price = resultSet.getInt("price");
-            apartmentLinkedList.add(new Apartment(street,number,price));//TODO:replace new Seller with my logic
         }
         return apartmentLinkedList;
     }
 
-    public void addApartment(Apartment apartment){
+    public void addApartment(Apartment apartment) {
+    }
 
-        try {
-            Statement statement = connection.createStatement();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public void addUserIfNotExist(BotUser user) throws SQLException {
+        if (!exist(user.telegramId)) {
+            addUser(user);
         }
     }
-    public void addSeller(){
 
+    public BotUser getBotUserByTelegramId(Integer telegramId) throws SQLException {
+        BotUser botUser = new BotUser();
+        Statement statement = connection.createStatement();
+        String sql =
+                "select * from users " +
+                "where telegramId = " + telegramId;
+        ResultSet resultSet = statement.executeQuery(sql);
+        botUser.telegramId = resultSet.getInt("telegramId");
+        botUser.databaseId = resultSet.getInt("id");
+        botUser.firstName = resultSet.getString("firstName");
+        botUser.lastName = resultSet.getString("lastName");
+        botUser.userName = resultSet.getString("userName");
+        botUser.email = resultSet.getString("email");
+        botUser.phoneNumber = resultSet.getString("phoneNumber");
+        return botUser;
     }
+
+    public void addUser(BotUser user) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "insert into users (telegramId, firstName, lastName, userName, phoneNumber, email) " +
+                        "values " + user.getValuesForDB();
+        statement.execute(sql);
+    }
+
+    boolean exist(Integer telegramId) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "select count(*) from users " +
+                "where telegramId = " + telegramId;
+        ResultSet resultSet = statement.executeQuery(sql);
+        return resultSet.getInt(1) == 1;
+    }
+
     Connection getConnection() throws SQLException {
         return DriverManager.getConnection("jdbc:sqlite:" + databaseFileName);
     }

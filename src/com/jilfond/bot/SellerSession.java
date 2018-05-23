@@ -1,11 +1,14 @@
 package com.jilfond.bot;
 
 import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.User;
+
+import java.sql.SQLException;
 
 public class SellerSession extends Session {
     private Apartment apartment = new Apartment();
 
-    private SellerSession(Database database, Bot bot, Long chatId) {
+    public SellerSession(Database database, Bot bot, Long chatId) {
         super(database, bot, chatId);
     }
 
@@ -68,8 +71,7 @@ public class SellerSession extends Session {
                         default:
                             try {
                                 apartment.price = Integer.parseInt(text);
-                                reply("Done!");
-                                sendSelectActionRequest();
+                                sendConfirmRequest();
                             } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
                             }
@@ -77,10 +79,32 @@ public class SellerSession extends Session {
                     }
                     break;
                 case "CONFIRM":
+                    switch (text) {
+                        case "Yes":
+                            try {
+                                User user = message.getFrom();
+                                if (!database.exist(user.getId())) {
+                                    database.addUser(new BotUser(user));
+                                }
+                                reply("Done!");
+                                sendSelectActionRequest();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                                reply("Error!");
+                            }
+                            break;
+                        case "Back":
+                            sendSendPriceRequest();
+                        case "Cancel":
+                            sendSelectActionRequest();
+                    }
+                    break;
+
             }
         });
         currentAction.start();
     }
+
 
     private void sendSendPriceRequest() {
         reply("Send me price, please", Keyboards.backAndCancel);
@@ -97,4 +121,9 @@ public class SellerSession extends Session {
         state = "SEND_NUMBER";
     }
 
+    private void sendConfirmRequest() {
+        reply("Confirm information", Keyboards.yesBackAndCancel);
+        reply(apartment.toString());
+        state = "CONFIRM";
+    }
 }
