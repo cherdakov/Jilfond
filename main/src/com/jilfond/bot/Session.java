@@ -1,10 +1,10 @@
 package com.jilfond.bot;
 
+import com.jilfond.bot.annotations.Virtual;
+import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import java.sql.SQLException;
 import java.util.LinkedList;
 
 

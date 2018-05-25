@@ -1,4 +1,4 @@
-package com.jilfond.bot;
+package com.jilfond.bot.objects;
 
 import java.util.LinkedList;
 import java.util.List;

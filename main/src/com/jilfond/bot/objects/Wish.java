@@ -1,4 +1,4 @@
-package com.jilfond.bot;
+package com.jilfond.bot.objects;
 
 public class Wish {
     public String street;

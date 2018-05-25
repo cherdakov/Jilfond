@@ -4,7 +4,7 @@ import org.telegram.telegrambots.api.objects.User;
 
 import java.lang.reflect.Field;
 
-class BotUser {
+public class BotUser {
     public int telegramId;
     public int databaseId;
     public String firstName = "null";
@@ -26,7 +26,7 @@ class BotUser {
                 '}';
     }
 
-    BotUser(){
+    public BotUser(){
 
     }
 

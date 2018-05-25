@@ -1,9 +1,6 @@
 package com.jilfond.bot;
 
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Message;
-
-import java.util.LinkedList;
+import com.jilfond.bot.databases.Database;
 
 public class CustomerSession extends Session {
 
