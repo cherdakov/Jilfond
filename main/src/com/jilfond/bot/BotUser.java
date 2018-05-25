@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 
 public class BotUser {
     public int telegramId;
-    public int databaseId;
     public String firstName = "null";
     public String lastName = "null";
     public String userName = "null";
@@ -17,7 +16,6 @@ public class BotUser {
     public String toString() {
         return "BotUser{" +
                 "telegramId=" + telegramId +
-                ", databaseId=" + databaseId +
                 ", firstName=" + firstName +
                 ", lastName=" + lastName +
                 ", userName=" + userName +

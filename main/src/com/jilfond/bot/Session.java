@@ -37,6 +37,7 @@ public class Session {
     private ReplyKeyboardMarkup createSelectActionKeyboard() {
         actions.add("Add");
         actions.add("Show");
+        actions.add("Delete");
         actions.add("Cancel");
         return Keyboards.make(actions);
     }

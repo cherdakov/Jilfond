@@ -40,11 +40,11 @@ public class SellerSession extends Session {
                     if (text.equals("Cancel")) {
                         sendSelectActionRequest();
                     } else {
-                        apartment.street = text;
-                        sendSendNumberRequest();
+                        apartment.setStreet(text);
+                        sendSendHouseNumberRequest();
                     }
                     break;
-                case "SEND_NUMBER":
+                case "SEND_HOUSE_NUMBER":
                     switch (text) {
                         case "Cancel":
                             sendSelectActionRequest();
@@ -54,7 +54,25 @@ public class SellerSession extends Session {
                             break;
                         default:
                             try {
-                                apartment.number = Integer.parseInt(text);
+                                apartment.houseNumber = text;
+                                sendSendApartmentNumberRequest();
+                            } catch (NumberFormatException e) {
+                                reply("It is not number :( try again");
+                            }
+                            break;
+                    }
+                    break;
+                case "SEND_APARTMENT_NUMBER":
+                    switch (text) {
+                        case "Cancel":
+                            sendSelectActionRequest();
+                            break;
+                        case "Back":
+                            sendSendHouseNumberRequest();
+                            break;
+                        default:
+                            try {
+                                apartment.apartmentNumber = Integer.valueOf(text);
                                 sendSendPriceRequest();
                             } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
@@ -68,11 +86,30 @@ public class SellerSession extends Session {
                             sendSelectActionRequest();
                             break;
                         case "Back":
-                            sendSendNumberRequest();
+                            sendSendApartmentNumberRequest();
                             break;
                         default:
                             try {
                                 apartment.price = Integer.parseInt(text);
+                                sendSendSquareRequest();
+                            } catch (NumberFormatException e) {
+                                reply("It is not number :( try again");
+                            }
+                            break;
+                    }
+                    break;
+                case "SEND_SQUARE":
+                    switch (text) {
+                        case "Cancel":
+                            sendSelectActionRequest();
+                            break;
+                        case "Back":
+                            sendSendPriceRequest();
+                            break;
+                        default:
+                            try {
+                                apartment.square = Integer.parseInt(text);
+                                apartment.seller = message.getFrom().getId();
                                 sendConfirmRequest();
                             } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
@@ -88,6 +125,7 @@ public class SellerSession extends Session {
                                 if (!database.exist(user.getId())) {
                                     database.addUser(new BotUser(user));
                                 }
+                                database.addApartment(apartment);
                                 reply("Done!");
                                 sendSelectActionRequest();
                             } catch (SQLException e) {
@@ -96,15 +134,22 @@ public class SellerSession extends Session {
                             }
                             break;
                         case "Back":
-                            sendSendPriceRequest();
+                            sendSendSquareRequest();
+                            break;
                         case "Cancel":
                             sendSelectActionRequest();
+                            break;
                     }
                     break;
 
             }
         });
         currentAction.start();
+    }
+
+    private void sendSendSquareRequest() {
+        reply("Send me square, please", Keyboards.backAndCancel);
+        state = "SEND_SQUARE";
     }
 
 
@@ -118,9 +163,13 @@ public class SellerSession extends Session {
         state = "SEND_STREET";
     }
 
-    private void sendSendNumberRequest() {
+    private void sendSendHouseNumberRequest() {
         reply("Send me number of house, please", Keyboards.backAndCancel);
-        state = "SEND_NUMBER";
+        state = "SEND_HOUSE_NUMBER";
+    }
+    private void sendSendApartmentNumberRequest() {
+        reply("Send me number of apartment, please", Keyboards.backAndCancel);
+        state = "SEND_APARTMENT_NUMBER";
     }
 
     private void sendConfirmRequest() {

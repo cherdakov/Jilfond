@@ -4,25 +4,33 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Apartment {
-    public String street;
-    public Integer number;
+    private String street;
+    public String houseNumber;
+    public Integer apartmentNumber;
     public Integer price;
+    public Integer square;
+    public Integer seller;
     List<String> photos = new LinkedList<>();
 
-    public Apartment() {
+
+    public String getStreet() {
+        return street;
     }
 
-    public Apartment(String street, Integer number, Integer price, List<String> photos) {
-        this.street = street;
-        this.number = number;
-        this.price = price;
-        this.photos = photos;
+    public void setStreet(String street) {
+        this.street = street.replace('\"', '\'');
+    }
+
+    public Apartment() {
     }
 
     @Override
     public String toString() {
         return  "street = " + street + "\n" +
-                "number = " + number + "\n" +
-                "price = "  + price  + "\n";
+                "houseNumber = " + houseNumber + "\n" +
+                "apartmentNumber = " + apartmentNumber + "\n" +
+                "price = " + price + "\n" +
+                "square = " + square + "\n" +
+                "seller = " + seller + "\n";
     }
 }

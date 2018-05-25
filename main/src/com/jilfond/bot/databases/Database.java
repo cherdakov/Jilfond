@@ -11,7 +11,6 @@ public class Database {
     private final String databaseFileName = "database.s3db";
 
 
-
     public Database() throws SQLException {
         connection = getConnection();
     }
@@ -32,7 +31,19 @@ public class Database {
         return apartmentLinkedList;
     }
 
-    public void addApartment(Apartment apartment) {
+    public void addApartment(Apartment apartment) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "insert into apartments (street, houseNumber, apartmentNumber, price, square, seller) " +
+                        "values (" +
+                        "\"" +
+                        apartment.getStreet() + "\"" + ", " +
+                        apartment.houseNumber + ", " +
+                        apartment.apartmentNumber + ", " +
+                        apartment.price + ", " +
+                        apartment.square + ", " +
+                        apartment.seller + ")";
+        statement.execute(sql);
     }
 
     public void addUserIfNotExist(BotUser user) throws SQLException {
@@ -46,10 +57,9 @@ public class Database {
         Statement statement = connection.createStatement();
         String sql =
                 "select * from users " +
-                "where telegramId = " + telegramId;
+                        "where telegramId = " + telegramId;
         ResultSet resultSet = statement.executeQuery(sql);
         botUser.telegramId = resultSet.getInt("telegramId");
-        botUser.databaseId = resultSet.getInt("id");
         botUser.firstName = resultSet.getString("firstName");
         botUser.lastName = resultSet.getString("lastName");
         botUser.userName = resultSet.getString("userName");
@@ -70,7 +80,7 @@ public class Database {
         Statement statement = connection.createStatement();
         String sql =
                 "select count(*) from users " +
-                "where telegramId = " + telegramId;
+                        "where telegramId = " + telegramId;
         ResultSet resultSet = statement.executeQuery(sql);
         return resultSet.getInt(1) == 1;
     }
@@ -79,7 +89,7 @@ public class Database {
         Statement statement = connection.createStatement();
         String sql =
                 "delete from users " +
-                "where telegramId = "+ telegramId;
+                        "where telegramId = " + telegramId;
         statement.execute(sql);
     }
 
