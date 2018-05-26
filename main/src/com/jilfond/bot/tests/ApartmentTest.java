@@ -1,6 +1,7 @@
 package com.jilfond.bot.tests;
 
 import com.jilfond.bot.objects.Apartment;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ApartmentTest {
 
     @Test
+    @Disabled
     void toStringTest() {
         Apartment apartment = new Apartment();
         apartment.setStreet("Caesars");

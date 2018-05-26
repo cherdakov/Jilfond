@@ -17,8 +17,11 @@ public class Session {
     protected LinkedList<String> actions = new LinkedList<>();
     protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
 
-    public Session() {
+    public Session(Database database, Long chatId) {
         this.bot = Bot.getCurrentBot();
+        this.chatId = chatId;
+        this.database = database;
+        sendSelectActionRequest();
     }
 
     void reply(String text, ReplyKeyboardMarkup keyboard) {

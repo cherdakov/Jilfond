@@ -33,11 +33,19 @@ public class Keyboards {
     static ReplyKeyboardMarkup make(LinkedList<String> buttons, boolean vertical){
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         LinkedList<KeyboardRow> keyboardRows = new LinkedList<>();
-        KeyboardRow keyboardButtons = new KeyboardRow();
-        for(String button:buttons){
-            keyboardButtons.add(button);
+        if(vertical) {
+            for(String button: buttons){
+                KeyboardRow keyboardButtons = new KeyboardRow();
+                keyboardButtons.add(button);
+                keyboardRows.add(keyboardButtons);
+            }
+        } else{
+            KeyboardRow keyboardButtons = new KeyboardRow();
+            for (String button : buttons) {
+                keyboardButtons.add(button);
+            }
+            keyboardRows.add(keyboardButtons);
         }
-        keyboardRows.add(0, keyboardButtons);
         replyKeyboardMarkup.setKeyboard(keyboardRows);
         return  replyKeyboardMarkup;
     }

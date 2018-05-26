@@ -16,11 +16,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
-    private Manager manager = new Manager(this);
+    private Manager manager;
+
 
     Bot() throws SQLException {
-        super();
         currentBot = this;
+        manager = new Manager(); //manager use static field currentBot!
     }
 
     @Override

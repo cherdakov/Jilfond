@@ -2,17 +2,19 @@ package com.jilfond.bot.databases;
 
 import com.jilfond.bot.BotUser;
 import com.jilfond.bot.objects.Apartment;
+import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteOpenMode;
 
 import java.sql.*;
 import java.util.LinkedList;
 
 public class Database {
-    private Connection connection;
+    private Connection connection = getConnection();
     private final String databaseFileName = "database.s3db";
 
 
     public Database() throws SQLException {
-        connection = getConnection();
+
     }
 
     public LinkedList<Apartment> getApartments(Integer databaseId) throws SQLException {
@@ -65,6 +67,7 @@ public class Database {
         botUser.userName = resultSet.getString("userName");
         botUser.email = resultSet.getString("email");
         botUser.phoneNumber = resultSet.getString("phoneNumber");
+        resultSet.close();
         return botUser;
     }
 
@@ -82,7 +85,9 @@ public class Database {
                 "select count(*) from users " +
                         "where telegramId = " + telegramId;
         ResultSet resultSet = statement.executeQuery(sql);
-        return resultSet.getInt(1) == 1;
+        Integer res = resultSet.getInt(1);
+        resultSet.close();
+        return res == 1;
     }
 
     public void deleteUserByTelegramId(Integer telegramId) throws SQLException {
@@ -94,6 +99,26 @@ public class Database {
     }
 
     Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + databaseFileName);
+        SQLiteConfig config = new SQLiteConfig();
+        config.setOpenMode(SQLiteOpenMode.FULLMUTEX);
+        return DriverManager.getConnection("jdbc:sqlite:" + databaseFileName, config.toProperties());
+    }
+
+    public void updatePhoneNumber(Integer userId, String phoneNumber) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "update users " +
+                        "set phoneNumber = '"+phoneNumber+"' "+
+                        "where telegramId = "+userId;
+        statement.execute(sql);
+    }
+
+    public void updateEmail(Integer userId, String email) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "update users " +
+                "set email = '"+email+"' "+
+                "where telegramId = "+userId;
+        statement.execute(sql);
     }
 }

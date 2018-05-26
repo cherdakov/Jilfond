@@ -8,19 +8,19 @@ import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 
 public class Manager {
-    private Database database;
-    private TreeMap<Long, Session> sessions = new TreeMap<>();
-    Bot bot;
-    ReplyKeyboardMarkup selectActionKeyboardMarkup;
+    private Database database = new Database();
+    private TreeMap<Long, Session> sessions = new TreeMap<Long, Session>();
+    private TreeSet<Integer> usersWhoChangingPhoneNumber = new TreeSet<Integer>();
+    private TreeSet<Integer> usersWhoChangingEmail = new TreeSet<Integer>();
+    Bot bot = Bot.getCurrentBot();
+    ReplyKeyboardMarkup selectActionKeyboardMarkup = createSelectActionKeyboard();
 
 
-    Manager(Bot bot) throws SQLException {
-        this.bot = bot;
-        selectActionKeyboardMarkup = createSelectActionKeyboard();
-        database = new Database();
+    Manager() throws SQLException {
     }
 
     private ReplyKeyboardMarkup createSelectActionKeyboard() {
@@ -29,14 +29,19 @@ public class Manager {
         actions.add("Buy");
         actions.add("Set phone number");
         actions.add("Set email");
-        return Keyboards.make(actions);
+        return Keyboards.make(actions,true);
     }
 
     public void pushMessage(Message message) {
-        Integer userId = message.getFrom().getId();
         Long chatId = message.getChatId();
+        Integer userId = message.getFrom().getId();
         if (message.getText().equals("/start")) {
             sendSelectActionRequest(chatId);
+            try {
+                database.addUserIfNotExist(new BotUser(message.getFrom()));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         } else {
             if (sessions.containsKey(chatId)) {
                 Session session = sessions.get(chatId);
@@ -46,27 +51,56 @@ public class Manager {
                 } else {
                     session.pushMessage(message);
                 }
-            } else {
-                handleMessageAsAction(chatId, message.getText());
+            } else if(usersWhoChangingPhoneNumber.contains(userId)) {
+                if(!message.getText().equals("Cancel")) {
+                    try {
+                        database.updatePhoneNumber(userId, message.getText());
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        //TODO:send error
+                    }
+                }
+                usersWhoChangingPhoneNumber.remove(userId);
+                sendSelectActionRequest(chatId);
+            } else if(usersWhoChangingEmail.contains(userId)) {
+                if(!message.getText().equals("Cancel")) {
+                    try {
+                        database.updateEmail(userId, message.getText());
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        //TODO:send error
+                    }
+                }
+                usersWhoChangingEmail.remove(userId);
+                sendSelectActionRequest(chatId);
+            } else{
+                handleMessageAsAction(message);
             }
         }
     }
 
 
-    void handleMessageAsAction(Long chatId, String command) {
-        switch (command) {
+    void handleMessageAsAction(Message message) {
+        Integer userId = message.getFrom().getId();
+        Long chatId = message.getChatId();
+        switch (message.getText()) {
             case "Sell":
-                sessions.put(chatId, new SellerSession());
+                sessions.put(chatId, new SellerSession(database, message.getChatId()));
                 break;
             case "Buy":
-                sessions.put(chatId, new BuyerSession());
+                sessions.put(chatId, new BuyerSession(database, message.getChatId()));
                 break;
             case "Set phone number":
+                usersWhoChangingPhoneNumber.add(userId);
+                bot.send(message.getChatId(),"Send your current phone number, please", Keyboards.onlyCancel);
                 break;
             case "Set email":
+                usersWhoChangingEmail.add(userId);
+                bot.send(message.getChatId(),"Send your current email, please", Keyboards.onlyCancel);
                 break;
         }
     }
+
 
     void dropSession(Long chatId) {
         sessions.remove(chatId);
