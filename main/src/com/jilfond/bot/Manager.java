@@ -14,48 +14,57 @@ public class Manager {
     private Database database;
     private TreeMap<Long, Session> sessions = new TreeMap<>();
     Bot bot;
-    ReplyKeyboardMarkup selectRoleKeyboardMarkup;
-    
+    ReplyKeyboardMarkup selectActionKeyboardMarkup;
+
 
     Manager(Bot bot) throws SQLException {
         this.bot = bot;
-        selectRoleKeyboardMarkup = createSelectRoleKeyboard();
+        selectActionKeyboardMarkup = createSelectActionKeyboard();
         database = new Database();
     }
 
-    private ReplyKeyboardMarkup createSelectRoleKeyboard() {
-        LinkedList<String> roles = new LinkedList<>();
-        roles.add("Seller");
-        roles.add("Customer");
-        return Keyboards.make(roles);
+    private ReplyKeyboardMarkup createSelectActionKeyboard() {
+        LinkedList<String> actions = new LinkedList<>();
+        actions.add("Sell");
+        actions.add("Buy");
+        actions.add("Set phone number");
+        actions.add("Set email");
+        return Keyboards.make(actions);
     }
 
     public void pushMessage(Message message) {
         Integer userId = message.getFrom().getId();
         Long chatId = message.getChatId();
         if (message.getText().equals("/start")) {
-            sendSelectRoleRequest(chatId);
+            sendSelectActionRequest(chatId);
         } else {
             if (sessions.containsKey(chatId)) {
                 Session session = sessions.get(chatId);
                 if (session.getState().equals("SELECT_ACTION") && message.getText().equals("Cancel")) {
                     dropSession(chatId);
-                    sendSelectRoleRequest(chatId);
+                    sendSelectActionRequest(chatId);
                 } else {
                     session.pushMessage(message);
                 }
             } else {
-                createSession(chatId, message.getText());
+                handleMessageAsAction(chatId, message.getText());
             }
         }
     }
 
 
-    void createSession(Long chatId, String role) {
-        if (role.equals("Seller")) {
-            sessions.put(chatId, new SellerSession(database, bot, chatId));
-        } else if (role.equals("Customer")) {
-            sessions.put(chatId, new CustomerSession(database, bot, chatId));
+    void handleMessageAsAction(Long chatId, String command) {
+        switch (command) {
+            case "Sell":
+                sessions.put(chatId, new SellerSession());
+                break;
+            case "Buy":
+                sessions.put(chatId, new BuyerSession());
+                break;
+            case "Set phone number":
+                break;
+            case "Set email":
+                break;
         }
     }
 
@@ -63,8 +72,8 @@ public class Manager {
         sessions.remove(chatId);
     }
 
-    void sendSelectRoleRequest(Long chatId) {
-        bot.send(chatId, "Select Role", selectRoleKeyboardMarkup);
+    void sendSelectActionRequest(Long chatId) {
+        bot.send(chatId, "Select action", selectActionKeyboardMarkup);
     }
 
 }

@@ -10,8 +10,8 @@ import java.sql.SQLException;
 public class SellerSession extends Session {
     private Apartment apartment = new Apartment();
 
-    public SellerSession(Database database, Bot bot, Long chatId) {
-        super(database, bot, chatId);
+    public SellerSession(){
+
     }
 
     @Override
