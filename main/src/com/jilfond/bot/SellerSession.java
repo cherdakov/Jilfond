@@ -73,7 +73,7 @@ public class SellerSession extends Session {
                             break;
                         default:
                             try {
-                                apartment.apartmentNumber = Integer.valueOf(text);
+                                apartment.number = Integer.valueOf(text);
                                 sendSendPriceRequest();
                             } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
@@ -111,11 +111,30 @@ public class SellerSession extends Session {
                             try {
                                 apartment.square = Integer.parseInt(text);
                                 apartment.seller = message.getFrom().getId();
-                                sendConfirmRequest();
+                                sendAddPicturesRequest();
                             } catch (NumberFormatException e) {
                                 reply("It is not number :( try again");
                             }
                             break;
+                    }
+                    break;
+                case "ADD_PICTURES":
+                    if(message.hasPhoto()){
+                        apartment.setPhotos(message.getPhoto());
+                        System.out.println("REALLY? ");
+                        sendConfirmRequest();
+                    } else{
+                        switch (text) {
+                            case "Cancel":
+                                sendSelectActionRequest();
+                                break;
+                            case "Back":
+                                sendSendSquareRequest();
+                                break;
+                            case "No":
+                                sendConfirmRequest();
+                                break;
+                        }
                     }
                     break;
                 case "CONFIRM":
@@ -142,10 +161,16 @@ public class SellerSession extends Session {
                             break;
                     }
                     break;
-
+                default:
+                    throw new IllegalStateException();
             }
         });
         currentAction.start();
+    }
+
+    private void sendAddPicturesRequest() {
+        reply("Send me pictures, please", Keyboards.backCancelAndNo);
+        state = "ADD_PICTURES";
     }
 
     private void sendSendSquareRequest() {

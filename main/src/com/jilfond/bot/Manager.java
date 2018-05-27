@@ -35,6 +35,10 @@ public class Manager {
     public void pushMessage(Message message) {
         Long chatId = message.getChatId();
         Integer userId = message.getFrom().getId();
+        if(!message.hasText()){
+            sessions.get(chatId).pushMessage(message);
+            return;
+        }
         if (message.getText().equals("/start")) {
             sendSelectActionRequest(chatId);
             try {

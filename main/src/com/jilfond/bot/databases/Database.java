@@ -34,17 +34,30 @@ public class Database {
     }
 
     public void addApartment(Apartment apartment) throws SQLException {
-        Statement statement = connection.createStatement();
+
         String sql =
-                "insert into apartments (street, houseNumber, apartmentNumber, price, square, seller) " +
-                        "values (" +
-                        "\"" +
-                        apartment.getStreet() + "\"" + ", " +
-                        apartment.houseNumber + ", " +
-                        apartment.apartmentNumber + ", " +
-                        apartment.price + ", " +
-                        apartment.square + ", " +
-                        apartment.seller + ")";
+                "insert into apartments (street, houseNumber, number, price, square, seller) " +
+                "values (?, ?, ?, ?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1,apartment.getStreet());
+        preparedStatement.setString(2,apartment.houseNumber);
+        preparedStatement.setInt(3,apartment.number);
+        preparedStatement.setInt(4,apartment.price);
+        preparedStatement.setInt(5,apartment.square);
+        preparedStatement.setInt(6,apartment.seller);
+        preparedStatement.execute();
+        apartment.databaseId = preparedStatement.getGeneratedKeys().getInt(1);
+        if(apartment.photos!=null) {
+            for (String photo : apartment.photos) {
+                addPhotosToApartment(apartment.databaseId, photo);
+            }
+        }
+    }
+    void addPhotosToApartment(Integer apartmentDatabaseId, String photo) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql = "insert into photos (apartmentId, photo) " +
+                "values ("+apartmentDatabaseId+", " +
+                "'"+photo+"')";
         statement.execute(sql);
     }
 
@@ -72,11 +85,17 @@ public class Database {
     }
 
     public void addUser(BotUser user) throws SQLException {
-        Statement statement = connection.createStatement();
         String sql =
                 "insert into users (telegramId, firstName, lastName, userName, phoneNumber, email) " +
-                        "values " + user.getValuesForDB();
-        statement.execute(sql);
+                "values (?, ?, ?, ?, ?, ?)";
+        PreparedStatement preparedStatement= connection.prepareStatement(sql);
+        preparedStatement.setInt(1,user.telegramId);
+        preparedStatement.setString(2, user.firstName);
+        preparedStatement.setString(3, user.lastName);
+        preparedStatement.setString(4, user.userName);
+        preparedStatement.setString(5, user.phoneNumber);
+        preparedStatement.setString(6, user.email);
+        preparedStatement.execute();
     }
 
     public boolean exist(Integer telegramId) throws SQLException {
@@ -108,8 +127,8 @@ public class Database {
         Statement statement = connection.createStatement();
         String sql =
                 "update users " +
-                        "set phoneNumber = '"+phoneNumber+"' "+
-                        "where telegramId = "+userId;
+                        "set phoneNumber = '" + phoneNumber + "' " +
+                        "where telegramId = " + userId;
         statement.execute(sql);
     }
 
@@ -117,8 +136,25 @@ public class Database {
         Statement statement = connection.createStatement();
         String sql =
                 "update users " +
-                "set email = '"+email+"' "+
-                "where telegramId = "+userId;
+                        "set email = '" + email + "' " +
+                        "where telegramId = " + userId;
+        statement.execute(sql);
+    }
+
+    public void deletePhotosFromApartment(Integer apartmentId) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "delete from photos " +
+                        "where apartmentId = " + apartmentId;
+        statement.execute(sql);
+    }
+
+    public void deleteApartmentById(Integer apartmentId) throws SQLException {
+        deletePhotosFromApartment(apartmentId);
+        Statement statement = connection.createStatement();
+        String sql =
+                "delete from apartments " +
+                        "where id = " + apartmentId;
         statement.execute(sql);
     }
 }

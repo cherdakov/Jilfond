@@ -6,11 +6,22 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import java.util.LinkedList;
 
 public class Keyboards {
+    public static ReplyKeyboardMarkup backCancelAndNo = createBackCancelAndNo();
+
+
+
     static ReplyKeyboardMarkup onlyCancel = createOnlyCancel();
     static ReplyKeyboardMarkup backAndCancel = createBackAndCancel();
     static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
 
 
+    private static ReplyKeyboardMarkup createBackCancelAndNo() {
+        LinkedList<String> cancel = new LinkedList<>();
+        cancel.add("Back");
+        cancel.add("Cancel");
+        cancel.add("No");
+        return make(cancel);
+    }
     private static ReplyKeyboardMarkup createOnlyCancel() {
         LinkedList<String> cancel = new LinkedList<>();
         cancel.add("Cancel");

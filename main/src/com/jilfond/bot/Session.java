@@ -37,7 +37,7 @@ public class Session {
         actions.add("Show");
         actions.add("Delete");
         actions.add("Cancel");
-        return Keyboards.make(actions);
+        return Keyboards.make(actions,true);
     }
 
     @Virtual

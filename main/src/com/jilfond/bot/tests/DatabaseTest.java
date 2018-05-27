@@ -37,7 +37,7 @@ class DatabaseTest {
         Apartment apartment = new Apartment();
         apartment.setStreet("Chekhov's");
         apartment.houseNumber = "12/3";
-        apartment.apartmentNumber = 488;
+        apartment.number = 488;
         apartment.square = 35;
         apartment.price = 15000;
         apartment.seller = 123454321;
@@ -72,5 +72,16 @@ class DatabaseTest {
             e.printStackTrace();
         }
 
+    }
+    @Test
+    void addApartmentTest(){
+        Apartment apartment = new Apartment();
+        try {
+            Database database = new Database();
+            database.addApartment(apartment);
+            database.deleteApartmentById(apartment.databaseId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
