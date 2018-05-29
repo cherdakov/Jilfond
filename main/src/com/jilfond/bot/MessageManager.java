@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 
-public class Manager {
+public class MessageManager {
     private Database database = new Database();
     private TreeMap<Long, Session> sessions = new TreeMap<Long, Session>();
     private TreeSet<Integer> usersWhoChangingPhoneNumber = new TreeSet<Integer>();
@@ -20,7 +20,7 @@ public class Manager {
     ReplyKeyboardMarkup selectActionKeyboardMarkup = createSelectActionKeyboard();
 
 
-    Manager() throws SQLException {
+    MessageManager() throws SQLException {
     }
 
     private ReplyKeyboardMarkup createSelectActionKeyboard() {

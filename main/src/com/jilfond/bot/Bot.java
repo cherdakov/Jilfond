@@ -1,46 +1,68 @@
 package com.jilfond.bot;
 
-import org.telegram.telegrambots.api.methods.send.SendContact;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.objects.Contact;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.PhotoSize;
-import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.*;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updateshandlers.DownloadFileCallback;
 
 import java.sql.SQLException;
-import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
-    private Manager manager;
+    private MessageManager messageManager;
+    private CallbackManager callbackManager;
+
+    private static Bot currentBot;
 
 
     Bot() throws SQLException {
         currentBot = this;
-        manager = new Manager(); //manager use static field currentBot!
+        messageManager = new MessageManager(); //messageManager use static field currentBot!
+        callbackManager = new CallbackManager(); //messageManager use static field currentBot!
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-
-        Long chatId = update.getMessage().getChatId();
-
-        if (update.hasMessage()) {
-            manager.pushMessage(update.getMessage());
+        if(update.hasMessage()){
+            messageManager.pushMessage(update.getMessage());
+        } else if(update.hasCallbackQuery()){
+            callbackManager.pushUpdate(update);
         }
 
         /*
-        SendPhoto sendPhotoRequest  = new SendPhoto().setChatId(chatId).setPhoto("AgADAgAD8KgxG-U1CUhM-zZxy4E_7JBTqw4ABOpNLn1DAXgG-8UBAAEC");
-        try {
-            sendPhoto(sendPhotoRequest);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+        if (update.hasMessage()) {
+            //messageManager.pushMessage(update.getMessage());
+            SendMessage sendMessage = new SendMessage().setText("no, please!").setChatId(update.getMessage().getChatId());
+            InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> listOfButtonsList = new LinkedList<>();
+            List<InlineKeyboardButton> buttons = new LinkedList<>();
+            InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+            inlineKeyboardButton.setText("DELETE THIS!");
+            inlineKeyboardButton.setCallbackData("DELETE THIS MESSAGE");
+            buttons.add(inlineKeyboardButton);
+            listOfButtonsList.add(buttons);
+            inlineKeyboardMarkup.setKeyboard(listOfButtonsList);
+            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        } else if(update.hasCallbackQuery()){
+            Long chatId = update.getCallbackQuery().getMessage().getChatId();
+            Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(chatId).setMessageId(messageId);
+            try {
+                execute(deleteMessage);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        } else{
+
         }
         */
+
     }
 
     void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){
@@ -61,7 +83,6 @@ public class Bot extends TelegramLongPollingBot {
         send(chatId,text,null);
     }
 
-    private static Bot currentBot;
 
     public static Bot getCurrentBot() {
         return currentBot;
