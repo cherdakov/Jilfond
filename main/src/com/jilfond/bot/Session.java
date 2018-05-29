@@ -13,7 +13,7 @@ public class Session {
     protected String state = "SELECT_ACTION";
     protected Bot bot;
     protected Long chatId;
-    protected Thread currentAction;
+    protected Thread currentThreadAction;
     protected LinkedList<String> actions = new LinkedList<>();
     protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
 
@@ -34,7 +34,8 @@ public class Session {
     @Virtual
     private ReplyKeyboardMarkup createSelectActionKeyboard() {
         actions.add("Add");
-        actions.add("Show");
+        actions.add("Show Apartments");
+        actions.add("Show Wishes");
         actions.add("Delete");
         actions.add("Cancel");
         return Keyboards.make(actions,true);
