@@ -1,7 +1,10 @@
 package com.jilfond.bot;
 
+import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.*;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -11,14 +14,14 @@ import java.sql.SQLException;
 public class Bot extends TelegramLongPollingBot {
     private MessageManager messageManager;
     private CallbackManager callbackManager;
-
+    private Database database = new Database();
     private static Bot currentBot;
 
 
     Bot() throws SQLException {
         currentBot = this;
-        messageManager = new MessageManager(); //messageManager use static field currentBot!
-        callbackManager = new CallbackManager(); //messageManager use static field currentBot!
+        messageManager = new MessageManager(database); //messageManager use static field currentBot!
+        callbackManager = new CallbackManager(database); //messageManager use static field currentBot!
     }
 
     @Override
@@ -65,7 +68,22 @@ public class Bot extends TelegramLongPollingBot {
 
     }
 
+
     void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){
+        try {
+            SendMessage sendMessage = new SendMessage().
+                    setChatId(chatId).
+                    setText(text);
+            if(keyboard!=null){
+                sendMessage.setReplyMarkup(keyboard);
+            }
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void send(Long chatId, String text, InlineKeyboardMarkup keyboard){
         try {
             SendMessage sendMessage = new SendMessage().
                     setChatId(chatId).
@@ -79,8 +97,16 @@ public class Bot extends TelegramLongPollingBot {
         }
 
     }
+
     void send(Long chatId, String text){
-        send(chatId,text,null);
+        try {
+            SendMessage sendMessage = new SendMessage().
+                    setChatId(chatId).
+                    setText(text);
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -101,5 +127,14 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public String getBotToken() {
         return "522474427:AAHsCXHRTz4UYhOQovlGQdNheAA2qBQh-rY";
+    }
+
+    public void sendPicture(Long chatId, String photo, String description) {
+        SendPhoto sendPhotoRequest = new SendPhoto().setChatId(chatId).setPhoto(photo).setCaption(description);
+        try {
+            sendPhoto(sendPhotoRequest);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 }

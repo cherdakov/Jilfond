@@ -1,9 +1,12 @@
 package com.jilfond.bot;
 
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class Keyboards {
     public static ReplyKeyboardMarkup backCancelAndNo = createBackCancelAndNo();
@@ -14,6 +17,16 @@ public class Keyboards {
     static ReplyKeyboardMarkup backAndCancel = createBackAndCancel();
     static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
 
+    public static InlineKeyboardMarkup makeOneButtonInlineKeyboardMarkup(String buttonText, String callbackData){
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton().setCallbackData(callbackData).setText(buttonText);
+        List<List<InlineKeyboardButton>> linkedListLinkedList = new LinkedList<>();
+        List<InlineKeyboardButton> inlineKeyboardButtonLinkedList= new LinkedList<>();
+        inlineKeyboardButtonLinkedList.add(inlineKeyboardButton);
+        linkedListLinkedList.add(inlineKeyboardButtonLinkedList);
+        inlineKeyboardMarkup.setKeyboard(linkedListLinkedList);
+        return inlineKeyboardMarkup;
+    }
 
     private static ReplyKeyboardMarkup createBackCancelAndNo() {
         LinkedList<String> cancel = new LinkedList<>();
