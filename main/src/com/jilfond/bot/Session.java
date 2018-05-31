@@ -3,6 +3,7 @@ package com.jilfond.bot;
 import com.jilfond.bot.annotations.Virtual;
 import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.LinkedList;
@@ -27,8 +28,16 @@ public class Session {
     void reply(String text, ReplyKeyboardMarkup keyboard) {
         bot.send(chatId,text,keyboard);
     }
+
+    void reply(String text, InlineKeyboardMarkup keyboard) {
+        bot.send(chatId,text,keyboard);
+    }
+
     void reply(String text) {
         bot.send(chatId,text);
+    }
+    void replyWithPhoto(String photo, String description){
+        bot.sendPicture(this.chatId, photo, description);
     }
 
     @Virtual
