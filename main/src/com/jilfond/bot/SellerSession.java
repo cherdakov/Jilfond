@@ -1,11 +1,13 @@
 package com.jilfond.bot;
 
+import com.google.inject.Key;
 import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.User;
 
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 public class SellerSession extends Session {
     private Apartment apartment = new Apartment();
@@ -38,7 +40,13 @@ public class SellerSession extends Session {
                             sendSendStreetRequest();
                             break;
                         case "Show Apartments":
-                            
+                            try {
+                                sendApartmentsToSeller(message.getFrom().getId());
+                            } catch (SQLException e) {
+                                reply("Error!");
+                                e.printStackTrace();
+                            }
+
                             break;
                         case "Cancel":
                             //unreachable because this situation is handled by the manager
@@ -59,6 +67,16 @@ public class SellerSession extends Session {
         currentThreadAction.start();
     }
 
+    private void sendApartmentsToSeller(Integer id) throws SQLException {
+        LinkedList<Apartment> apartments = database.getApartmentsByTelegramId(id);
+        for(Apartment apartment: apartments){
+            reply(apartment.toString(),Keyboards.makeOneButtonInlineKeyboardMarkup("delete Apartment", String.valueOf(apartment.databaseId)));
+            for(String photo:apartment.photos){
+                replyWithPhoto(photo,"nice!");
+            }
+        }
+    }
+
     private void handleShowApartmentsAction(Message message) {
 
     }
@@ -71,13 +89,15 @@ public class SellerSession extends Session {
                     sendSelectActionRequest();
                     currentAction = Action.NONE;
                 } else {
-                    apartment.setStreet(text);
+                    String street = text.replace('\"', '\'');
+                    apartment.street = street;
                     sendSendHouseNumberRequest();
                 }
                 break;
             case "SEND_HOUSE_NUMBER":
                 switch (text) {
                     case "Cancel":
+                        currentAction = Action.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -96,6 +116,7 @@ public class SellerSession extends Session {
             case "SEND_APARTMENT_NUMBER":
                 switch (text) {
                     case "Cancel":
+                        currentAction = Action.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -114,6 +135,7 @@ public class SellerSession extends Session {
             case "SEND_PRICE":
                 switch (text) {
                     case "Cancel":
+                        currentAction = Action.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -132,6 +154,7 @@ public class SellerSession extends Session {
             case "SEND_SQUARE":
                 switch (text) {
                     case "Cancel":
+                        currentAction = Action.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -150,12 +173,14 @@ public class SellerSession extends Session {
                 break;
             case "ADD_PICTURES":
                 if (message.hasPhoto()) {
+
                     apartment.setPhotos(message.getPhoto());
                     System.out.println("REALLY? ");
                     sendConfirmRequest();
                 } else {
                     switch (text) {
                         case "Cancel":
+                            currentAction = Action.NONE;
                             sendSelectActionRequest();
                             break;
                         case "Back":
@@ -182,11 +207,14 @@ public class SellerSession extends Session {
                             e.printStackTrace();
                             reply("Error!");
                         }
+                        currentAction = Action.NONE;
                         break;
                     case "Back":
                         sendSendSquareRequest();
+
                         break;
                     case "Cancel":
+                        currentAction = Action.NONE;
                         sendSelectActionRequest();
                         break;
                 }

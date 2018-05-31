@@ -2,6 +2,7 @@ package com.jilfond.bot.databases;
 
 import com.jilfond.bot.BotUser;
 import com.jilfond.bot.objects.Apartment;
+import org.junit.jupiter.api.Test;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteOpenMode;
 
@@ -17,47 +18,33 @@ public class Database {
 
     }
 
-    public LinkedList<Apartment> getApartments(Integer databaseId) throws SQLException {
-        String sql =
-                "SELECT * FROM apartments" +
-                        "WHERE id = " + Integer.toString(databaseId);
-        Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(sql);
-        LinkedList<Apartment> apartmentLinkedList = new LinkedList<>();
-        while (resultSet.next()) {
-            Apartment apartment = new Apartment();
-            String street = resultSet.getString("street");
-            Integer number = resultSet.getInt("number");
-            Integer price = resultSet.getInt("price");
-        }
-        return apartmentLinkedList;
-    }
 
     public void addApartment(Apartment apartment) throws SQLException {
 
         String sql =
                 "insert into apartments (street, houseNumber, number, price, square, seller) " +
-                "values (?, ?, ?, ?, ?, ?)";
+                        "values (?, ?, ?, ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1,apartment.getStreet());
-        preparedStatement.setString(2,apartment.houseNumber);
-        preparedStatement.setInt(3,apartment.number);
-        preparedStatement.setInt(4,apartment.price);
-        preparedStatement.setInt(5,apartment.square);
-        preparedStatement.setInt(6,apartment.seller);
+        preparedStatement.setString(1, apartment.getStreet());
+        preparedStatement.setString(2, apartment.houseNumber);
+        preparedStatement.setInt(3, apartment.number);
+        preparedStatement.setInt(4, apartment.price);
+        preparedStatement.setInt(5, apartment.square);
+        preparedStatement.setInt(6, apartment.seller);
         preparedStatement.execute();
         apartment.databaseId = preparedStatement.getGeneratedKeys().getInt(1);
-        if(apartment.photos!=null) {
+        if (apartment.photos != null) {
             for (String photo : apartment.photos) {
                 addPhotosToApartment(apartment.databaseId, photo);
             }
         }
     }
+
     void addPhotosToApartment(Integer apartmentDatabaseId, String photo) throws SQLException {
         Statement statement = connection.createStatement();
         String sql = "insert into photos (apartmentId, photo) " +
-                "values ("+apartmentDatabaseId+", " +
-                "'"+photo+"')";
+                "values (" + apartmentDatabaseId + ", " +
+                "'" + photo + "')";
         statement.execute(sql);
     }
 
@@ -87,9 +74,9 @@ public class Database {
     public void addUser(BotUser user) throws SQLException {
         String sql =
                 "insert into users (telegramId, firstName, lastName, userName, phoneNumber, email) " +
-                "values (?, ?, ?, ?, ?, ?)";
-        PreparedStatement preparedStatement= connection.prepareStatement(sql);
-        preparedStatement.setInt(1,user.telegramId);
+                        "values (?, ?, ?, ?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, user.telegramId);
         preparedStatement.setString(2, user.firstName);
         preparedStatement.setString(3, user.lastName);
         preparedStatement.setString(4, user.userName);
@@ -156,5 +143,35 @@ public class Database {
                 "delete from apartments " +
                         "where id = " + apartmentId;
         statement.execute(sql);
+    }
+
+    public LinkedList<Apartment> getApartmentsByTelegramId(Integer telegramId) throws SQLException {
+        LinkedList<Apartment> apartments = new LinkedList<>();
+        String sql =
+                "SELECT * FROM apartments " +
+                        "WHERE seller = " + telegramId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            Apartment apartment = new Apartment();
+            apartment.street = resultSet.getString("street");
+            apartment.houseNumber = resultSet.getString("houseNumber");
+            apartment.number = resultSet.getInt("number");
+            apartment.databaseId = resultSet.getInt("id");
+            apartment.price = resultSet.getInt("price");
+            apartment.square = resultSet.getInt("square");
+            apartment.seller = resultSet.getInt("seller");
+            apartment.databaseId = resultSet.getInt("id");
+            Statement photoStatement = connection.createStatement();
+            String photoSql = "SELECT * FROM photos " +
+                    "WHERE apartmentId = " + apartment.databaseId;
+            ResultSet photoResultSet = photoStatement.executeQuery(photoSql);
+            while (photoResultSet.next()){
+                String photo = photoResultSet.getString("photo");
+                apartment.photos.add(photo);
+            }
+            apartments.add(apartment);
+        }
+        return apartments;
     }
 }

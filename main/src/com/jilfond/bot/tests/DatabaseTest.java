@@ -6,6 +6,7 @@ import com.jilfond.bot.objects.Apartment;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
+import java.util.LinkedList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,7 +36,7 @@ class DatabaseTest {
     @Test
     void addGetExistRemoveApartment() {
         Apartment apartment = new Apartment();
-        apartment.setStreet("Chekhov's");
+        apartment.street = "Chekhov";
         apartment.houseNumber = "12/3";
         apartment.number = 488;
         apartment.square = 35;
@@ -48,6 +49,7 @@ class DatabaseTest {
             e.printStackTrace();
         }
     }
+
     @Test
     void updatePhoneNumberAndEmail() {
         BotUser botUser = new BotUser();
@@ -73,13 +75,31 @@ class DatabaseTest {
         }
 
     }
+
     @Test
-    void addApartmentTest(){
+    void addApartmentTest() {
         Apartment apartment = new Apartment();
         try {
             Database database = new Database();
             database.addApartment(apartment);
             database.deleteApartmentById(apartment.databaseId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    void getApartmentsByTelegramIdTest(){
+        Integer telegramId = 63059291;
+        try {
+            Database database = new Database();
+            LinkedList<Apartment> apartments = database.getApartmentsByTelegramId(telegramId);
+            for(Apartment apartment:apartments){
+                System.out.println(apartment.toString());
+                System.out.println("photos:");
+                for(String photo:apartment.photos){
+                    System.out.println(photo);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

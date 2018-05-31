@@ -12,16 +12,17 @@ import java.util.TreeSet;
 
 
 public class MessageManager {
-    private Database database = new Database();
+    private Database database;
     private TreeMap<Long, Session> sessions = new TreeMap<Long, Session>();
     private TreeSet<Integer> usersWhoChangingPhoneNumber = new TreeSet<Integer>();
     private TreeSet<Integer> usersWhoChangingEmail = new TreeSet<Integer>();
     Bot bot = Bot.getCurrentBot();
     ReplyKeyboardMarkup selectActionKeyboardMarkup = createSelectActionKeyboard();
 
-
-    MessageManager() throws SQLException {
+    public MessageManager(Database database) {
+        this.database = database;
     }
+
 
     private ReplyKeyboardMarkup createSelectActionKeyboard() {
         LinkedList<String> actions = new LinkedList<>();
