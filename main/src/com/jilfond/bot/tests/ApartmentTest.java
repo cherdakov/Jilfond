@@ -10,7 +10,7 @@ class ApartmentTest {
     @Disabled
     void toStringTest() {
         Apartment apartment = new Apartment();
-        apartment.setStreet("Caesars");
+        apartment.street = "Caesars";
         apartment.houseNumber = "123/2";
         apartment.number = 23;
         apartment.seller = 123454321;

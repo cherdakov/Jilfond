@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Apartment {
-    private String street = "street";
+    public String street = "street";
     public String houseNumber = "houseNumber";
     public Integer number = 0;
     public Integer databaseId = 0;
@@ -20,23 +20,22 @@ public class Apartment {
         return street;
     }
 
-    public void setStreet(String street) {
-        this.street = street.replace('\"', '\'');
-    }
-
     public Apartment() {
         photos = new LinkedList<>();
-        photos.add("photo");
     }
 
     @Override
     public String toString() {
-        return "street = " + street + "\n" +
-                "houseNumber = " + houseNumber + "\n" +
-                "number = " + number + "\n" +
-                "price = " + price + "\n" +
-                "square = " + square + "\n" +
-                "seller = " + seller + "\n";
+        return "Apartment{" +
+                "street='" + street + '\'' +
+                ", houseNumber='" + houseNumber + '\'' +
+                ", number=" + number +
+                ", databaseId=" + databaseId +
+                ", price=" + price +
+                ", square=" + square +
+                ", seller=" + seller +
+                ", photos=" + photos +
+                '}';
     }
 
     public void setPhotos(List<PhotoSize> photos) {
