@@ -1,6 +1,6 @@
 package com.jilfond.bot.tests;
 
-import com.jilfond.bot.BotUser;
+import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.databases.Database;
 import com.jilfond.bot.objects.Apartment;
 import org.junit.jupiter.api.Test;
@@ -24,10 +24,10 @@ class DatabaseTest {
             Database database = new Database();
             //database.deleteUserByTelegramId(botUser.telegramId);
             database.addUser(botUser);
-            assertEquals(true, database.exist(botUser.telegramId));
+            assertEquals(true, database.userExist(botUser.telegramId));
             assertEquals(botUser.toString(), database.getBotUserByTelegramId(botUser.telegramId).toString());
             database.deleteUserByTelegramId(botUser.telegramId);
-            assertEquals(false, database.exist(botUser.telegramId));
+            assertEquals(false, database.userExist(botUser.telegramId));
         } catch (SQLException e) {
             e.printStackTrace();
         }

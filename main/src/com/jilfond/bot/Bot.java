@@ -1,6 +1,8 @@
 package com.jilfond.bot;
 
 import com.jilfond.bot.databases.Database;
+import com.jilfond.bot.managers.CallbackManager;
+import com.jilfond.bot.managers.MessageManager;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.*;
@@ -69,7 +71,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
 
-    void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){
+    public void send(Long chatId, String text, ReplyKeyboardMarkup keyboard){
         try {
             SendMessage sendMessage = new SendMessage().
                     setChatId(chatId).
@@ -83,7 +85,7 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    void send(Long chatId, String text, InlineKeyboardMarkup keyboard){
+    public void send(Long chatId, String text, InlineKeyboardMarkup keyboard){
         try {
             SendMessage sendMessage = new SendMessage().
                     setChatId(chatId).
@@ -98,7 +100,7 @@ public class Bot extends TelegramLongPollingBot {
 
     }
 
-    void send(Long chatId, String text){
+    public void send(Long chatId, String text){
         try {
             SendMessage sendMessage = new SendMessage().
                     setChatId(chatId).

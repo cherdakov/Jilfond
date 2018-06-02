@@ -1,8 +1,8 @@
 package com.jilfond.bot.databases;
 
-import com.jilfond.bot.BotUser;
+import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.objects.Apartment;
-import org.junit.jupiter.api.Test;
+import com.jilfond.bot.sessions.Session;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteOpenMode;
 
@@ -19,11 +19,10 @@ public class Database {
     }
 
 
-    public void addApartment(Apartment apartment) throws SQLException {
-
+    public void addApartment(Apartment apartment, boolean added) throws SQLException {
         String sql =
-                "insert into apartments (street, houseNumber, number, price, square, seller) " +
-                        "values (?, ?, ?, ?, ?, ?)";
+                "insert into apartments (street, houseNumber, number, price, square, seller, added) " +
+                        "values (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, apartment.getStreet());
         preparedStatement.setString(2, apartment.houseNumber);
@@ -31,6 +30,7 @@ public class Database {
         preparedStatement.setInt(4, apartment.price);
         preparedStatement.setInt(5, apartment.square);
         preparedStatement.setInt(6, apartment.seller);
+        preparedStatement.setBoolean(7, added);
         preparedStatement.execute();
         apartment.databaseId = preparedStatement.getGeneratedKeys().getInt(1);
         if (apartment.photos != null) {
@@ -38,6 +38,10 @@ public class Database {
                 addPhotosToApartment(apartment.databaseId, photo);
             }
         }
+    }
+
+    public void addApartment(Apartment apartment) throws SQLException {
+        addApartment(apartment, true);
     }
 
     void addPhotosToApartment(Integer apartmentDatabaseId, String photo) throws SQLException {
@@ -49,7 +53,7 @@ public class Database {
     }
 
     public void addUserIfNotExist(BotUser user) throws SQLException {
-        if (!exist(user.telegramId)) {
+        if (!userExist(user.telegramId)) {
             addUser(user);
         }
     }
@@ -85,7 +89,7 @@ public class Database {
         preparedStatement.execute();
     }
 
-    public boolean exist(Integer telegramId) throws SQLException {
+    public boolean userExist(Integer telegramId) throws SQLException {
         Statement statement = connection.createStatement();
         String sql =
                 "select count(*) from users " +
@@ -145,7 +149,7 @@ public class Database {
         statement.execute(sql);
     }
 
-    public LinkedList<Apartment> getApartmentsByTelegramId(Integer telegramId) throws SQLException {
+    public LinkedList<Apartment> getApartmentsByTelegramId(Integer telegramId, boolean added) throws SQLException {
         LinkedList<Apartment> apartments = new LinkedList<>();
         String sql =
                 "SELECT * FROM apartments " +
@@ -153,6 +157,9 @@ public class Database {
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
+            if (resultSet.getBoolean("added") != added) {
+                continue;
+            }
             Apartment apartment = new Apartment();
             apartment.street = resultSet.getString("street");
             apartment.houseNumber = resultSet.getString("houseNumber");
@@ -166,12 +173,33 @@ public class Database {
             String photoSql = "SELECT * FROM photos " +
                     "WHERE apartmentId = " + apartment.databaseId;
             ResultSet photoResultSet = photoStatement.executeQuery(photoSql);
-            while (photoResultSet.next()){
+            while (photoResultSet.next()) {
                 String photo = photoResultSet.getString("photo");
                 apartment.photos.add(photo);
             }
             apartments.add(apartment);
+            photoResultSet.close();
         }
+        resultSet.close();
         return apartments;
     }
+
+    public LinkedList<Apartment> getApartmentsByTelegramId(Integer telegramId) throws SQLException {
+        return getApartmentsByTelegramId(telegramId, true);
+    }
+
+    public boolean sessionExist(Integer telegramId) throws SQLException {
+        String sql = "SELECT count(*) FROM states " +
+                "where telegramId = " + telegramId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        int count = resultSet.getInt(1);
+        resultSet.close();
+        return count == 1;
+    }
+
+    public void saveSession(Session session){
+
+    }
+
 }

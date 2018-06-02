@@ -1,4 +1,4 @@
-package com.jilfond.bot;
+package com.jilfond.bot.objects;
 
 import org.telegram.telegrambots.api.objects.User;
 

@@ -13,9 +13,9 @@ public class Keyboards {
 
 
 
-    static ReplyKeyboardMarkup onlyCancel = createOnlyCancel();
-    static ReplyKeyboardMarkup backAndCancel = createBackAndCancel();
-    static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
+    public static ReplyKeyboardMarkup onlyCancel = createOnlyCancel();
+    public static ReplyKeyboardMarkup backAndCancel = createBackAndCancel();
+    public static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
 
     public static InlineKeyboardMarkup makeOneButtonInlineKeyboardMarkup(String buttonText, String callbackData){
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
@@ -54,7 +54,7 @@ public class Keyboards {
         return make(cancel);
     }
 
-    static ReplyKeyboardMarkup make(LinkedList<String> buttons, boolean vertical){
+    public static ReplyKeyboardMarkup make(LinkedList<String> buttons, boolean vertical){
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         LinkedList<KeyboardRow> keyboardRows = new LinkedList<>();
         if(vertical) {

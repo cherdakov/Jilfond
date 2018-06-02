@@ -1,6 +1,7 @@
-package com.jilfond.bot;
+package com.jilfond.bot.sessions;
 
-import com.google.inject.Key;
+import com.jilfond.bot.objects.BotUser;
+import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;
@@ -11,16 +12,17 @@ import java.util.LinkedList;
 
 public class SellerSession extends Session {
     private Apartment apartment = new Apartment();
-    enum Action{
+    enum ACTION {
         NONE,
         ADD_APARTMENT,
         SHOW_APARTMENTS,
         SHOW_WISHES
-    };
-    private Action currentAction = Action.NONE;
+    }
+    private ACTION currentAction = ACTION.NONE;
     
     public SellerSession(Database database, Long chatId) {
         super(database, chatId);
+        type = "SELLER";
     }
 
 
@@ -36,7 +38,7 @@ public class SellerSession extends Session {
                 case NONE:
                     switch (message.getText()) {
                         case "Add":
-                            currentAction = Action.ADD_APARTMENT;
+                            currentAction = ACTION.ADD_APARTMENT;
                             sendSendStreetRequest();
                             break;
                         case "Show Apartments":
@@ -87,17 +89,16 @@ public class SellerSession extends Session {
             case "SEND_STREET":
                 if (text.equals("Cancel")) {
                     sendSelectActionRequest();
-                    currentAction = Action.NONE;
+                    currentAction = ACTION.NONE;
                 } else {
-                    String street = text.replace('\"', '\'');
-                    apartment.street = street;
+                    apartment.street = text;
                     sendSendHouseNumberRequest();
                 }
                 break;
             case "SEND_HOUSE_NUMBER":
                 switch (text) {
                     case "Cancel":
-                        currentAction = Action.NONE;
+                        currentAction = ACTION.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -116,7 +117,7 @@ public class SellerSession extends Session {
             case "SEND_APARTMENT_NUMBER":
                 switch (text) {
                     case "Cancel":
-                        currentAction = Action.NONE;
+                        currentAction = ACTION.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -135,7 +136,7 @@ public class SellerSession extends Session {
             case "SEND_PRICE":
                 switch (text) {
                     case "Cancel":
-                        currentAction = Action.NONE;
+                        currentAction = ACTION.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -154,7 +155,7 @@ public class SellerSession extends Session {
             case "SEND_SQUARE":
                 switch (text) {
                     case "Cancel":
-                        currentAction = Action.NONE;
+                        currentAction = ACTION.NONE;
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -180,7 +181,7 @@ public class SellerSession extends Session {
                 } else {
                     switch (text) {
                         case "Cancel":
-                            currentAction = Action.NONE;
+                            currentAction = ACTION.NONE;
                             sendSelectActionRequest();
                             break;
                         case "Back":
@@ -197,7 +198,7 @@ public class SellerSession extends Session {
                     case "Yes":
                         try {
                             User user = message.getFrom();
-                            if (!database.exist(user.getId())) {
+                            if (!database.userExist(user.getId())) {
                                 database.addUser(new BotUser(user));
                             }
                             database.addApartment(apartment);
@@ -207,14 +208,14 @@ public class SellerSession extends Session {
                             e.printStackTrace();
                             reply("Error!");
                         }
-                        currentAction = Action.NONE;
+                        currentAction = ACTION.NONE;
                         break;
                     case "Back":
                         sendSendSquareRequest();
 
                         break;
                     case "Cancel":
-                        currentAction = Action.NONE;
+                        currentAction = ACTION.NONE;
                         sendSelectActionRequest();
                         break;
                 }

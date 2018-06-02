@@ -1,6 +1,12 @@
-package com.jilfond.bot;
+package com.jilfond.bot.managers;
 
+import com.jilfond.bot.Bot;
+import com.jilfond.bot.objects.BotUser;
+import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.databases.Database;
+import com.jilfond.bot.sessions.BuyerSession;
+import com.jilfond.bot.sessions.SellerSession;
+import com.jilfond.bot.sessions.Session;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
@@ -36,11 +42,12 @@ public class MessageManager {
     public void pushMessage(Message message) {
         Long chatId = message.getChatId();
         Integer userId = message.getFrom().getId();
+
         if(!message.hasText()){
             sessions.get(chatId).pushMessage(message);
             return;
         }
-        if (message.getText().equals("/start")) {
+        if (message.getText().equals("/start")) {//TODO:FIX THIS!!!
             sendSelectActionRequest(chatId);
             try {
                 database.addUserIfNotExist(new BotUser(message.getFrom()));
@@ -109,6 +116,13 @@ public class MessageManager {
 
     void dropSession(Long chatId) {
         sessions.remove(chatId);
+    }
+
+    void loadSessionIfExist(Integer telegramId){
+        if(database.sessionExist(telegramId)){
+
+        }
+
     }
 
     void sendSelectActionRequest(Long chatId) {

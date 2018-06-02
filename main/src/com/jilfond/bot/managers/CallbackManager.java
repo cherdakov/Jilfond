@@ -1,4 +1,4 @@
-package com.jilfond.bot;
+package com.jilfond.bot.managers;
 
 import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;

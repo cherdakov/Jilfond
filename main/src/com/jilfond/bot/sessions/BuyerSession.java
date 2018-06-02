@@ -1,4 +1,4 @@
-package com.jilfond.bot;
+package com.jilfond.bot.sessions;
 
 import com.jilfond.bot.databases.Database;
 

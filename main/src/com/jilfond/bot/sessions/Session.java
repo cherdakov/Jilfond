@@ -1,5 +1,7 @@
-package com.jilfond.bot;
+package com.jilfond.bot.sessions;
 
+import com.jilfond.bot.Bot;
+import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.annotations.Virtual;
 import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;
@@ -17,6 +19,8 @@ public class Session {
     protected Thread currentThreadAction;
     protected LinkedList<String> actions = new LinkedList<>();
     protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
+
+    protected String type;
 
     public Session(Database database, Long chatId) {
         this.bot = Bot.getCurrentBot();
@@ -55,13 +59,13 @@ public class Session {
 
     }
 
-    String getState() {
+    public String getState() {
         return state;
     }
 
     void sendSelectActionRequest() {
         state = "SELECT_ACTION";
-        bot.send(chatId, "Select Action", selectActionKeyboard);
+        bot.send(chatId, "Select ACTION", selectActionKeyboard);
     }
 
 }
