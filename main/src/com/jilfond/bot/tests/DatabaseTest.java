@@ -1,8 +1,10 @@
 package com.jilfond.bot.tests;
 
+import com.jilfond.bot.Bot;
 import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.databases.Database;
 import com.jilfond.bot.objects.Apartment;
+import com.jilfond.bot.sessions.SellerSession;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -87,21 +89,45 @@ class DatabaseTest {
             e.printStackTrace();
         }
     }
+
     @Test
-    void getApartmentsByTelegramIdTest(){
+    void getApartmentsByTelegramIdTest() {
         Integer telegramId = 63059291;
         try {
             Database database = new Database();
             LinkedList<Apartment> apartments = database.getApartmentsByTelegramId(telegramId);
-            for(Apartment apartment:apartments){
+            for (Apartment apartment : apartments) {
                 System.out.println(apartment.toString());
                 System.out.println("photos:");
-                for(String photo:apartment.photos){
+                for (String photo : apartment.photos) {
                     System.out.println(photo);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    void saveAndLoadSessionTest() {
+        Long chatId = Long.valueOf(123456);
+        Database database = null;
+        SellerSession sellerSession = null;
+        try {
+            Bot bot = new Bot();
+            database = new Database();
+            sellerSession = new SellerSession(database, chatId);
+            sellerSession.save();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            assertEquals(true, database.sessionExist(chatId));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        SellerSession loadedSellerSession = new SellerSession(database, chatId);
+        loadedSellerSession.load();
+        assert (sellerSession.equals(loadedSellerSession));
     }
 }
