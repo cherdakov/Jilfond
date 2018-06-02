@@ -6,39 +6,50 @@ import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.databases.Database;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.User;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
 
 public class SellerSession extends Session {
-    private Apartment apartment = new Apartment();
-    enum ACTION {
-        NONE,
-        ADD_APARTMENT,
-        SHOW_APARTMENTS,
-        SHOW_WISHES
+    private Apartment apartment;
+    public SellerSession(Database database, SessionDescription sessionDescription) {
+        super(database, sessionDescription);
+        System.out.println("Seller session was created from session description:" + sessionDescription.toString());
+
     }
-    private ACTION currentAction = ACTION.NONE;
-    
+    @Override
+    protected Object getObject() {
+        System.out.println("GET OBJECT SELLER SESSION!");
+        return apartment;
+    }
+    @Override
+    protected void setObject(Object object) {
+        System.out.println("setObject SELLER SESSION!");
+        apartment = (Apartment) object;
+    }
+
     public SellerSession(Database database, Long chatId) {
         super(database, chatId);
         type = "SELLER";
+        apartment = new Apartment();
     }
-
 
     @Override
     public void pushMessage(Message message) {
+        super.pushMessage(message);//for same logic for all sessions
+        System.out.println(message.toString());
         try {
             currentThreadAction.join();
         } catch (NullPointerException | InterruptedException e) {
             //its normal situation
         }
         currentThreadAction = new Thread(() -> {
-            switch (currentAction) {
-                case NONE:
+            switch (action) {
+                case "NONE":
                     switch (message.getText()) {
                         case "Add":
-                            currentAction = ACTION.ADD_APARTMENT;
+                            action = "ADD_APARTMENT";
                             sendSendStreetRequest();
                             break;
                         case "Show Apartments":
@@ -48,22 +59,23 @@ public class SellerSession extends Session {
                                 reply("Error!");
                                 e.printStackTrace();
                             }
-
                             break;
                         case "Cancel":
                             //unreachable because this situation is handled by the manager
                             break;
                     }
                     break;
-                case ADD_APARTMENT:
+                case "ADD_APARTMENT":
                     handleAddAction(message);
                     break;
-                case SHOW_APARTMENTS:
+                case "SHOW_APARTMENTS":
                     handleShowApartmentsAction(message);
                     break;
-                case SHOW_WISHES:
+                case "SHOW_WISHES":
                     //handleShowWishAction(message);
                     break;
+                default:
+                    throw new IllegalStateException();
             }
         });
         currentThreadAction.start();
@@ -71,10 +83,16 @@ public class SellerSession extends Session {
 
     private void sendApartmentsToSeller(Integer id) throws SQLException {
         LinkedList<Apartment> apartments = database.getApartmentsByTelegramId(id);
-        for(Apartment apartment: apartments){
-            reply(apartment.toString(),Keyboards.makeOneButtonInlineKeyboardMarkup("delete Apartment", String.valueOf(apartment.databaseId)));
-            for(String photo:apartment.photos){
-                replyWithPhoto(photo,"nice!");
+        if (apartments.isEmpty()) {
+            reply("No added apartments.");
+        }
+        for (Apartment apartment : apartments) {
+            InlineKeyboardMarkup deleteApartmentKeyboard =
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Apartment", String.valueOf(apartment.databaseId));
+            if (apartment.photos.isEmpty()) {
+                reply(apartment.getDescriptionForSeller(), deleteApartmentKeyboard);
+            } else {
+                replyWithPhoto(apartment.photos.get(0), apartment.getDescriptionForSeller(), deleteApartmentKeyboard);
             }
         }
     }
@@ -89,7 +107,7 @@ public class SellerSession extends Session {
             case "SEND_STREET":
                 if (text.equals("Cancel")) {
                     sendSelectActionRequest();
-                    currentAction = ACTION.NONE;
+                    action = "NONE";
                 } else {
                     apartment.street = text;
                     sendSendHouseNumberRequest();
@@ -98,7 +116,7 @@ public class SellerSession extends Session {
             case "SEND_HOUSE_NUMBER":
                 switch (text) {
                     case "Cancel":
-                        currentAction = ACTION.NONE;
+                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -117,7 +135,7 @@ public class SellerSession extends Session {
             case "SEND_APARTMENT_NUMBER":
                 switch (text) {
                     case "Cancel":
-                        currentAction = ACTION.NONE;
+                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -136,7 +154,7 @@ public class SellerSession extends Session {
             case "SEND_PRICE":
                 switch (text) {
                     case "Cancel":
-                        currentAction = ACTION.NONE;
+                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -155,7 +173,7 @@ public class SellerSession extends Session {
             case "SEND_SQUARE":
                 switch (text) {
                     case "Cancel":
-                        currentAction = ACTION.NONE;
+                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -172,16 +190,14 @@ public class SellerSession extends Session {
                         break;
                 }
                 break;
-            case "ADD_PICTURES":
+            case "SEND_PICTURE":
                 if (message.hasPhoto()) {
-
-                    apartment.setPhotos(message.getPhoto());
-                    System.out.println("REALLY? ");
+                    apartment.addPhoto(message.getPhoto().get(3).getFileId());
                     sendConfirmRequest();
                 } else {
                     switch (text) {
                         case "Cancel":
-                            currentAction = ACTION.NONE;
+                            action = "NONE";
                             sendSelectActionRequest();
                             break;
                         case "Back":
@@ -197,7 +213,7 @@ public class SellerSession extends Session {
                 switch (text) {
                     case "Yes":
                         try {
-                            User user = message.getFrom();
+                            User user = message.getFrom();//TODO:can i del this?
                             if (!database.userExist(user.getId())) {
                                 database.addUser(new BotUser(user));
                             }
@@ -208,26 +224,29 @@ public class SellerSession extends Session {
                             e.printStackTrace();
                             reply("Error!");
                         }
-                        currentAction = ACTION.NONE;
+                        action = "NONE";
                         break;
                     case "Back":
-                        sendSendSquareRequest();
-
+                        sendAddPicturesRequest();
+                        apartment.photos.clear();
                         break;
                     case "Cancel":
-                        currentAction = ACTION.NONE;
+                        action = "NONE";
+                        apartment.photos.clear();
                         sendSelectActionRequest();
                         break;
                 }
                 break;
             default:
+                System.out.println(state);
+                System.out.println(message.toString());
                 throw new IllegalStateException();
         }
     }
 
     private void sendAddPicturesRequest() {
         reply("Send me pictures, please", Keyboards.backCancelAndNo);
-        state = "ADD_PICTURES";
+        state = "SEND_PICTURE";
     }
 
     private void sendSendSquareRequest() {
@@ -250,6 +269,7 @@ public class SellerSession extends Session {
         reply("Send me number of house, please", Keyboards.backAndCancel);
         state = "SEND_HOUSE_NUMBER";
     }
+
     private void sendSendApartmentNumberRequest() {
         reply("Send me number of apartment, please", Keyboards.backAndCancel);
         state = "SEND_APARTMENT_NUMBER";
@@ -260,4 +280,5 @@ public class SellerSession extends Session {
         reply(apartment.toString());
         state = "CONFIRM";
     }
+
 }
