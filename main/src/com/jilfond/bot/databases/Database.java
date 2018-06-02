@@ -2,7 +2,9 @@ package com.jilfond.bot.databases;
 
 import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.objects.Apartment;
+import com.jilfond.bot.sessions.SellerSession;
 import com.jilfond.bot.sessions.Session;
+import com.jilfond.bot.sessions.SessionDescription;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteOpenMode;
 
@@ -19,7 +21,7 @@ public class Database {
     }
 
 
-    public void addApartment(Apartment apartment, boolean added) throws SQLException {
+    public Integer addApartment(Apartment apartment, boolean added) throws SQLException {
         String sql =
                 "insert into apartments (street, houseNumber, number, price, square, seller, added) " +
                         "values (?, ?, ?, ?, ?, ?, ?)";
@@ -38,10 +40,11 @@ public class Database {
                 addPhotosToApartment(apartment.databaseId, photo);
             }
         }
+        return apartment.databaseId;
     }
 
-    public void addApartment(Apartment apartment) throws SQLException {
-        addApartment(apartment, true);
+    public Integer addApartment(Apartment apartment) throws SQLException {
+        return addApartment(apartment, true);
     }
 
     void addPhotosToApartment(Integer apartmentDatabaseId, String photo) throws SQLException {
@@ -188,9 +191,9 @@ public class Database {
         return getApartmentsByTelegramId(telegramId, true);
     }
 
-    public boolean sessionExist(Integer telegramId) throws SQLException {
-        String sql = "SELECT count(*) FROM states " +
-                "where telegramId = " + telegramId;
+    public boolean sessionExist(Long chatId) throws SQLException {
+        String sql = "SELECT count(*) FROM sessions " +
+                "where chatId = " + chatId;
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
         int count = resultSet.getInt(1);
@@ -198,8 +201,75 @@ public class Database {
         return count == 1;
     }
 
-    public void saveSession(Session session){
-
+    public void deleteApartmentByChatId(Long chatId) throws SQLException {
+        String sql = "delete from apartments " +
+                "where id in (select objectId from sessions where chatId = " + chatId + ")";
+        Statement statement = connection.createStatement();
+        statement.execute(sql);
     }
 
+    public void saveSession(SessionDescription session) throws SQLException {
+        deleteApartmentByChatId(session.chatId);
+        deleteSession(session.chatId);
+        Integer foreignKey = null;
+        switch (session.type) {
+            case "SELLER":
+                foreignKey = addApartment((Apartment) session.object, false);
+                break;
+            case "BUYER":
+                break;
+        }
+        String sql = "insert into sessions " +
+                "(chatId, state, action, type, objectId)" +
+                "values (?, ?, ?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setLong(1, session.chatId);
+        preparedStatement.setString(2, session.state);
+        preparedStatement.setString(3, session.action);
+        preparedStatement.setString(4, session.type);
+        preparedStatement.setInt(5, foreignKey);
+        preparedStatement.execute();
+    }
+
+    public SessionDescription getSession(Long chatId) throws SQLException {
+        SessionDescription sessionDescription = new SessionDescription();
+        String sql = "select * from sessions " +
+                "where chatId = " + chatId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        Integer foreignKey = resultSet.getInt("objectId");
+        sessionDescription.state = resultSet.getString("state");
+        sessionDescription.action = resultSet.getString("action");
+        sessionDescription.type = resultSet.getString("type");
+        sessionDescription.chatId = resultSet.getLong("chatId");
+        sessionDescription.object = getApartmentByApartmentDatabaseId(foreignKey);
+        resultSet.close();
+        return sessionDescription;
+    }
+
+    public Apartment getApartmentByApartmentDatabaseId(Integer apartmentId) throws SQLException {
+        Apartment apartment = new Apartment();
+        String sql = "SELECT * FROM apartments " +
+                "where added = false and id = " + apartmentId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        apartment.street = resultSet.getString("street");
+        apartment.houseNumber = resultSet.getString("houseNumber");
+        apartment.number = resultSet.getInt("number");
+        apartment.databaseId = resultSet.getInt("id");
+        apartment.price = resultSet.getInt("price");
+        apartment.square = resultSet.getInt("square");
+        apartment.seller = resultSet.getInt("seller");
+        apartment.databaseId = resultSet.getInt("id");
+        resultSet.close();
+        return apartment;
+    }
+
+    public void deleteSession(Long chatId) throws SQLException {
+        deleteApartmentByChatId(chatId);
+        String deleteSql = "delete from sessions " +
+                "where chatId = " + chatId;
+        Statement statement = connection.createStatement();
+        statement.execute(deleteSql);
+    }
 }
