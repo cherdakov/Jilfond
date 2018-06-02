@@ -13,7 +13,7 @@ public class Apartment {
     public Integer price = 0;
     public Integer square = 0;
     public Integer seller = 0;
-    public List<String> photos;
+    public List<String> photos = new LinkedList<>();
 
 
     public String getStreet() {
@@ -38,10 +38,16 @@ public class Apartment {
                 '}';
     }
 
-    public void setPhotos(List<PhotoSize> photos) {
-        this.photos = new LinkedList<>();
-        for (PhotoSize photo : photos) {
-            this.photos.add(photo.getFileId());
-        }
+    public String getDescriptionForSeller() {
+        return "street=" + street + "\n" +
+                "houseNumber=" + houseNumber + "\n" +
+                "number=" + number + "\n" +
+                "price=" + price + "\n" +
+                "square=" + square;
+    }
+
+
+    public void addPhoto(String fileId) {
+        photos.add(fileId);
     }
 }
