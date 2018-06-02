@@ -17,6 +17,7 @@ public class Keyboards {
     public static ReplyKeyboardMarkup backAndCancel = createBackAndCancel();
     public static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
 
+
     public static InlineKeyboardMarkup makeOneButtonInlineKeyboardMarkup(String buttonText, String callbackData){
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton().setCallbackData(callbackData).setText(buttonText);
@@ -29,29 +30,29 @@ public class Keyboards {
     }
 
     private static ReplyKeyboardMarkup createBackCancelAndNo() {
-        LinkedList<String> cancel = new LinkedList<>();
-        cancel.add("Back");
-        cancel.add("Cancel");
-        cancel.add("No");
-        return make(cancel);
+        LinkedList<String> buttons = new LinkedList<>();
+        buttons.add("Back");
+        buttons.add("Cancel");
+        buttons.add("No");
+        return make(buttons);
     }
     private static ReplyKeyboardMarkup createOnlyCancel() {
-        LinkedList<String> cancel = new LinkedList<>();
-        cancel.add("Cancel");
-        return make(cancel);
+        LinkedList<String> buttons = new LinkedList<>();
+        buttons.add("Cancel");
+        return make(buttons);
     }
     private static ReplyKeyboardMarkup createBackAndCancel() {
-        LinkedList<String> cancel = new LinkedList<>();
-        cancel.add("Back");
-        cancel.add("Cancel");
-        return make(cancel);
+        LinkedList<String> buttons = new LinkedList<>();
+        buttons.add("Back");
+        buttons.add("Cancel");
+        return make(buttons);
     }
     private static ReplyKeyboardMarkup createYesBackAndCancel() {
-        LinkedList<String> cancel = new LinkedList<>();
-        cancel.add("Yes");
-        cancel.add("Back");
-        cancel.add("Cancel");
-        return make(cancel);
+        LinkedList<String> buttons = new LinkedList<>();
+        buttons.add("Yes");
+        buttons.add("Back");
+        buttons.add("Cancel");
+        return make(buttons);
     }
 
     public static ReplyKeyboardMarkup make(LinkedList<String> buttons, boolean vertical){
