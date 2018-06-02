@@ -7,26 +7,58 @@ import com.jilfond.bot.databases.Database;
 import com.jilfond.bot.sessions.BuyerSession;
 import com.jilfond.bot.sessions.SellerSession;
 import com.jilfond.bot.sessions.Session;
+import com.jilfond.bot.sessions.SessionDescription;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
+
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MINUTE;
 
 
 public class MessageManager {
     private Database database;
-    private TreeMap<Long, Session> sessions = new TreeMap<Long, Session>();
+    private Map<Long, Session> sessions = new TreeMap<>();
     private TreeSet<Integer> usersWhoChangingPhoneNumber = new TreeSet<Integer>();
     private TreeSet<Integer> usersWhoChangingEmail = new TreeSet<Integer>();
+
+
     Bot bot = Bot.getCurrentBot();
     ReplyKeyboardMarkup selectActionKeyboardMarkup = createSelectActionKeyboard();
+    private final String mutex = "mutex";
 
     public MessageManager(Database database) {
         this.database = database;
+        //TODO:fix this shit!
+        Thread activityObserverThread = new Thread(() -> {
+            System.out.println("activityObserverThread start");
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                    Date currentTime = Calendar.getInstance().getTime();
+                    for (Long key : sessions.keySet()) {
+                        Session session = sessions.get(key);
+                        if (currentTime.getTime() - session.getLastActivityTime().getTime() > 1000 * 3) {
+                            synchronized (mutex) {
+                                System.out.println("activityObserverThread:");
+                                try {
+                                    session.save();
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                                sessions.remove(key);
+                            }
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        activityObserverThread.start();
     }
 
 
@@ -36,18 +68,20 @@ public class MessageManager {
         actions.add("Buy");
         actions.add("Set phone number");
         actions.add("Set email");
-        return Keyboards.make(actions,true);
+        return Keyboards.make(actions, true);
     }
 
-    public void pushMessage(Message message) {
+    public void pushMessage(Message message) throws SQLException {
         Long chatId = message.getChatId();
         Integer userId = message.getFrom().getId();
 
-        if(!message.hasText()){
+        if (!message.hasText()) {
             sessions.get(chatId).pushMessage(message);
             return;
         }
-        if (message.getText().equals("/start")) {//TODO:FIX THIS!!!
+        if (message.getText().equals("/start")) {
+            database.deleteSession(chatId);
+            sessions.remove(chatId);
             sendSelectActionRequest(chatId);
             try {
                 database.addUserIfNotExist(new BotUser(message.getFrom()));
@@ -55,38 +89,51 @@ public class MessageManager {
                 e.printStackTrace();
             }
         } else {
-            if (sessions.containsKey(chatId)) {
-                Session session = sessions.get(chatId);
-                if (session.getState().equals("SELECT_ACTION") && message.getText().equals("Cancel")) {
-                    dropSession(chatId);
+            synchronized (mutex) {
+                if(!sessions.containsKey(chatId) && database.sessionExist(chatId)){//TODO:can be optimized
+                    SessionDescription sessionDescription = database.getSession(chatId);
+                    switch (sessionDescription.type) {
+                        case "SELLER":
+                            sessions.put(chatId, new SellerSession(database, sessionDescription));
+                            break;
+                        case "BUYER":
+                            break;
+                    }
+                }
+                if (sessions.containsKey(chatId)) {
+                    Session session = sessions.get(chatId);
+                    if (session.getState().equals("SELECT_ACTION") && message.getText().equals("Cancel")) {
+                        sessions.remove(chatId);
+                        database.deleteSession(chatId);
+                        sendSelectActionRequest(chatId);
+                    } else {
+                        session.pushMessage(message);
+                    }
+                } else if (usersWhoChangingPhoneNumber.contains(userId)) {
+                    if (!message.getText().equals("Cancel")) {
+                        try {
+                            database.updatePhoneNumber(userId, message.getText());
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                            bot.send(chatId, "Error");
+                        }
+                    }
+                    usersWhoChangingPhoneNumber.remove(userId);
+                    sendSelectActionRequest(chatId);
+                } else if (usersWhoChangingEmail.contains(userId)) {
+                    if (!message.getText().equals("Cancel")) {
+                        try {
+                            database.updateEmail(userId, message.getText());
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                            bot.send(chatId, "Error");
+                        }
+                    }
+                    usersWhoChangingEmail.remove(userId);
                     sendSelectActionRequest(chatId);
                 } else {
-                    session.pushMessage(message);
+                    handleMessageAsAction(message);
                 }
-            } else if(usersWhoChangingPhoneNumber.contains(userId)) {
-                if(!message.getText().equals("Cancel")) {
-                    try {
-                        database.updatePhoneNumber(userId, message.getText());
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                        //TODO:send error
-                    }
-                }
-                usersWhoChangingPhoneNumber.remove(userId);
-                sendSelectActionRequest(chatId);
-            } else if(usersWhoChangingEmail.contains(userId)) {
-                if(!message.getText().equals("Cancel")) {
-                    try {
-                        database.updateEmail(userId, message.getText());
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                        //TODO:send error
-                    }
-                }
-                usersWhoChangingEmail.remove(userId);
-                sendSelectActionRequest(chatId);
-            } else{
-                handleMessageAsAction(message);
             }
         }
     }
@@ -104,25 +151,13 @@ public class MessageManager {
                 break;
             case "Set phone number":
                 usersWhoChangingPhoneNumber.add(userId);
-                bot.send(message.getChatId(),"Send your current phone number, please", Keyboards.onlyCancel);
+                bot.send(message.getChatId(), "Send your current phone number, please", Keyboards.onlyCancel);
                 break;
             case "Set email":
                 usersWhoChangingEmail.add(userId);
-                bot.send(message.getChatId(),"Send your current email, please", Keyboards.onlyCancel);
+                bot.send(message.getChatId(), "Send your current email, please", Keyboards.onlyCancel);
                 break;
         }
-    }
-
-
-    void dropSession(Long chatId) {
-        sessions.remove(chatId);
-    }
-
-    void loadSessionIfExist(Integer telegramId){
-        if(database.sessionExist(telegramId)){
-
-        }
-
     }
 
     void sendSelectActionRequest(Long chatId) {
