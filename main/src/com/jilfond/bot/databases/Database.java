@@ -210,7 +210,14 @@ public class Database {
     }
 
     public void saveSession(SessionDescription session) throws SQLException {
-        deleteApartmentByChatId(session.chatId);
+        switch (session.type) {
+            case "SELLER":
+                deleteApartmentByChatId(session.chatId);
+                break;
+            case "BUYER":
+                deleteWishByChatId(session.chatId);
+                break;
+        }
         deleteSession(session.chatId);
         Integer foreignKey = null;
         switch (session.type) {
@@ -231,6 +238,13 @@ public class Database {
         preparedStatement.setString(4, session.type);
         preparedStatement.setInt(5, foreignKey);
         preparedStatement.execute();
+    }
+
+    private void deleteWishByChatId(Long chatId) throws SQLException {
+        String sql = "delete from wishes " +
+                "where id in (select objectId from sessions where chatId = " + chatId + ")";
+        Statement statement = connection.createStatement();
+        statement.execute(sql);
     }
 
     public SessionDescription getSession(Long chatId) throws SQLException {
@@ -299,6 +313,7 @@ public class Database {
 
     public void deleteSession(Long chatId) throws SQLException {
         deleteApartmentByChatId(chatId);
+        deleteWishByChatId(chatId);
         String deleteSql = "delete from sessions " +
                 "where chatId = " + chatId;
         Statement statement = connection.createStatement();
