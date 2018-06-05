@@ -21,9 +21,9 @@ import static java.util.Calendar.MINUTE;
 
 public class MessageManager {
     private Database database;
-    private Map<Long, Session> sessions = new TreeMap<>();
-    private TreeSet<Integer> usersWhoChangingPhoneNumber = new TreeSet<Integer>();
-    private TreeSet<Integer> usersWhoChangingEmail = new TreeSet<Integer>();
+    private Map<Long, Session> sessions = new HashMap<>();
+    private Set<Integer> usersWhoChangingPhoneNumber = new HashSet<Integer>();
+    private Set<Integer> usersWhoChangingEmail = new HashSet<Integer>();
 
 
     Bot bot = Bot.getCurrentBot();
