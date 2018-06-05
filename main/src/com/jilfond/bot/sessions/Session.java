@@ -62,7 +62,6 @@ public class Session {
         actions.add("Add");
         actions.add("Show Apartments");
         actions.add("Show Wishes");
-        actions.add("Delete");
         actions.add("Cancel");
         return Keyboards.make(actions, true);
     }
@@ -78,7 +77,7 @@ public class Session {
 
     public void sendSelectActionRequest() {
         state = "SELECT_ACTION";
-        bot.send(chatId, "Select ACTION", selectActionKeyboard);
+        bot.send(chatId, "Select Action", selectActionKeyboard);
     }
 
     public void save() throws SQLException {

@@ -44,6 +44,7 @@ public class MessageManager {
                         if (currentTime.getTime() - session.getLastActivityTime().getTime() > 1000 * 3) {
                             synchronized (mutex) {
                                 System.out.println("activityObserverThread:");
+                                System.out.println("remove " + key);
                                 try {
                                     session.save();
                                 } catch (SQLException e) {
@@ -97,6 +98,7 @@ public class MessageManager {
                             sessions.put(chatId, new SellerSession(database, sessionDescription));
                             break;
                         case "BUYER":
+                            sessions.put(chatId, new BuyerSession(database, sessionDescription));
                             break;
                     }
                 }

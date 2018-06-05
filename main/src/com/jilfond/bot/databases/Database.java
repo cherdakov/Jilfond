@@ -2,6 +2,7 @@ package com.jilfond.bot.databases;
 
 import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.objects.Apartment;
+import com.jilfond.bot.objects.Wish;
 import com.jilfond.bot.sessions.SellerSession;
 import com.jilfond.bot.sessions.Session;
 import com.jilfond.bot.sessions.SessionDescription;
@@ -12,8 +13,8 @@ import java.sql.*;
 import java.util.LinkedList;
 
 public class Database {
+    static private final String databaseFileName = "database.s3db";
     private Connection connection = getConnection();
-    private final String databaseFileName = "database.s3db";
 
 
     public Database() throws SQLException {
@@ -26,7 +27,7 @@ public class Database {
                 "insert into apartments (street, houseNumber, number, price, square, seller, added) " +
                         "values (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, apartment.getStreet());
+        preparedStatement.setString(1, apartment.street);
         preparedStatement.setString(2, apartment.houseNumber);
         preparedStatement.setInt(3, apartment.number);
         preparedStatement.setInt(4, apartment.price);
@@ -217,6 +218,7 @@ public class Database {
                 foreignKey = addApartment((Apartment) session.object, false);
                 break;
             case "BUYER":
+                foreignKey = addWish((Wish) session.object, false);
                 break;
         }
         String sql = "insert into sessions " +
@@ -242,9 +244,31 @@ public class Database {
         sessionDescription.action = resultSet.getString("action");
         sessionDescription.type = resultSet.getString("type");
         sessionDescription.chatId = resultSet.getLong("chatId");
-        sessionDescription.object = getApartmentByApartmentDatabaseId(foreignKey);
+        switch (sessionDescription.type){
+            case "BUYER":
+                sessionDescription.object = getWishByWishDatabaseId(foreignKey);
+                break;
+            case "SELLER":
+                sessionDescription.object = getApartmentByApartmentDatabaseId(foreignKey);
+                break;
+        }
         resultSet.close();
         return sessionDescription;
+    }
+
+    private Object getWishByWishDatabaseId(Integer wishId) throws SQLException {
+        Wish wish = new Wish();
+        String sql = "SELECT * FROM wishes " +
+                "where added = false and id = " + wishId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        wish.street = resultSet.getString("street");
+        wish.price = resultSet.getInt("price");
+        wish.square = resultSet.getInt("square");
+        wish.databaseId = resultSet.getInt("id");
+        wish.buyer =resultSet.getInt("buyer");
+        resultSet.close();
+        return wish;
     }
 
     public Apartment getApartmentByApartmentDatabaseId(Integer apartmentId) throws SQLException {
@@ -256,11 +280,19 @@ public class Database {
         apartment.street = resultSet.getString("street");
         apartment.houseNumber = resultSet.getString("houseNumber");
         apartment.number = resultSet.getInt("number");
-        apartment.databaseId = resultSet.getInt("id");
         apartment.price = resultSet.getInt("price");
         apartment.square = resultSet.getInt("square");
         apartment.seller = resultSet.getInt("seller");
         apartment.databaseId = resultSet.getInt("id");
+        resultSet.close();
+        sql = "SELECT * FROM photos " +
+                "where apartmentId="+apartmentId;
+        statement = connection.createStatement();
+        resultSet = statement.executeQuery(sql);
+        while(resultSet.next()){
+            String photo = resultSet.getString("photo");
+            apartment.addPhoto(photo);
+        }
         resultSet.close();
         return apartment;
     }
@@ -272,4 +304,61 @@ public class Database {
         Statement statement = connection.createStatement();
         statement.execute(deleteSql);
     }
+
+
+    public LinkedList<Wish> getWishesByTelegramId(Integer telegramId) throws SQLException {
+        return getWishesByTelegramId(telegramId, true);
+
+    }
+
+    public LinkedList<Wish> getWishesByTelegramId(Integer telegramId, boolean added) throws SQLException {
+        LinkedList<Wish> wishes = new LinkedList<>();
+        String sql =
+                "SELECT * FROM wishes " +
+                        "WHERE buyer = " + telegramId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            if (resultSet.getBoolean("added") != added) {
+                continue;
+            }
+            Wish wish = new Wish();
+            wish.street = resultSet.getString("street");
+            wish.buyer = resultSet.getInt("buyer");
+            wish.databaseId = resultSet.getInt("id");
+            wish.price = resultSet.getInt("price");
+            wish.square = resultSet.getInt("square");
+            wishes.add(wish);
+        }
+        resultSet.close();
+        return wishes;
+    }
+
+    public Integer addWish(Wish wish) throws SQLException {
+        return addWish(wish, true);
+    }
+
+    public Integer addWish(Wish wish, boolean added) throws SQLException {
+        String sql =
+                "insert into wishes (street, price, square, buyer, added) " +
+                        "values (?, ?, ?, ?, ?)";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, wish.street);
+        preparedStatement.setInt(2, wish.price);
+        preparedStatement.setInt(3, wish.square);
+        preparedStatement.setInt(4, wish.buyer);
+        preparedStatement.setBoolean(5, added);
+        preparedStatement.execute();
+        wish.databaseId = preparedStatement.getGeneratedKeys().getInt(1);
+        return wish.databaseId;
+    }
+
+    public void deleteWishById(Integer wishId) throws SQLException {
+        Statement statement = connection.createStatement();
+        String sql =
+                "delete from wishes " +
+                        "where id = " + wishId;
+        statement.execute(sql);
+    }
+
 }

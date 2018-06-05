@@ -15,13 +15,8 @@ public class Apartment {
     public Integer seller = 0;
     public List<String> photos = new LinkedList<>();
 
-
-    public String getStreet() {
-        return street;
-    }
-
     public Apartment() {
-        photos = new LinkedList<>();
+
     }
 
     @Override
@@ -39,11 +34,11 @@ public class Apartment {
     }
 
     public String getDescriptionForSeller() {
-        return "street=" + street + "\n" +
-                "houseNumber=" + houseNumber + "\n" +
-                "number=" + number + "\n" +
-                "price=" + price + "\n" +
-                "square=" + square;
+        return "street = " + street + "\n" +
+                "houseNumber = " + houseNumber + "\n" +
+                "number = " + number + "\n" +
+                "price = " + price + "\n" +
+                "square = " + square;
     }
 
 

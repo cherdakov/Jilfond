@@ -15,12 +15,29 @@ public class CallbackManager {
     }
 
     public void pushUpdate(Update update) {
+        String callback = update.getCallbackQuery().getData();
+        String command = callback.split(" ")[0];
+        Integer id = Integer.valueOf(callback.split(" ")[1]);
+        Message message = update.getCallbackQuery().getMessage();
         try {
-            database.deleteApartmentById(Integer.valueOf(update.getCallbackQuery().getData()));
-            Message message = update.getCallbackQuery().getMessage();
-            bot.deleteMessage(message.getMessageId(),message.getChatId());
+        switch (command){
+            case "deleteWish":
+
+                bot.deleteMessage(message.getMessageId(),message.getChatId());
+                database.deleteWishById(id);
+                break;
+            case "deleteApartment":
+                database.deleteApartmentById(id);
+                bot.deleteMessage(message.getMessageId(),message.getChatId());
+                break;
+
+        }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+
+
+
     }
 }

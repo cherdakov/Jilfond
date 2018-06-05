@@ -12,11 +12,13 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 
 public class SellerSession extends Session {
-    private Apartment apartment = new Apartment();
+    private Apartment apartment;
+
     @Override
     protected Object getObject() {
         return apartment;
     }
+
     @Override
     protected void setObject(Object object) {
         apartment = (Apartment) object;
@@ -28,6 +30,7 @@ public class SellerSession extends Session {
 
     public SellerSession(Database database, Long chatId) {
         super(database, chatId);
+        apartment = new Apartment(); //only for this constructor
         type = "SELLER";
     }
 
@@ -83,8 +86,9 @@ public class SellerSession extends Session {
             reply("No added apartments.");
         }
         for (Apartment apartment : apartments) {
+            String callback = "deleteApartment " + apartment.databaseId;
             InlineKeyboardMarkup deleteApartmentKeyboard =
-                    Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Apartment", String.valueOf(apartment.databaseId));
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Apartment", callback);
             if (apartment.photos.isEmpty()) {
                 reply(apartment.getDescriptionForSeller(), deleteApartmentKeyboard);
             } else {
