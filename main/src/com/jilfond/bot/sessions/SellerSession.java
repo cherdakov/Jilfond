@@ -12,27 +12,23 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 
 public class SellerSession extends Session {
-    private Apartment apartment;
-    public SellerSession(Database database, SessionDescription sessionDescription) {
-        super(database, sessionDescription);
-        System.out.println("Seller session was created from session description:" + sessionDescription.toString());
-
-    }
+    private Apartment apartment = new Apartment();
     @Override
     protected Object getObject() {
-        System.out.println("GET OBJECT SELLER SESSION!");
         return apartment;
     }
     @Override
     protected void setObject(Object object) {
-        System.out.println("setObject SELLER SESSION!");
         apartment = (Apartment) object;
+    }
+
+    public SellerSession(Database database, SessionDescription sessionDescription) {
+        super(database, sessionDescription);
     }
 
     public SellerSession(Database database, Long chatId) {
         super(database, chatId);
         type = "SELLER";
-        apartment = new Apartment();
     }
 
     @Override
@@ -213,10 +209,6 @@ public class SellerSession extends Session {
                 switch (text) {
                     case "Yes":
                         try {
-                            User user = message.getFrom();//TODO:can i del this?
-                            if (!database.userExist(user.getId())) {
-                                database.addUser(new BotUser(user));
-                            }
                             database.addApartment(apartment);
                             reply("Done!");
                             sendSelectActionRequest();
