@@ -15,9 +15,6 @@ import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import java.sql.SQLException;
 import java.util.*;
 
-import static java.util.Calendar.DATE;
-import static java.util.Calendar.MINUTE;
-
 
 public class MessageManager {
     private Database database;
@@ -153,12 +150,14 @@ public class MessageManager {
                 break;
             case "Set phone number":
                 usersWhoChangingPhoneNumber.add(userId);
-                bot.send(message.getChatId(), "Send your current phone number, please", Keyboards.onlyCancel);
+                bot.send(message.getChatId(), "Send your current phone number, please", Keyboards.cancel);
                 break;
             case "Set email":
                 usersWhoChangingEmail.add(userId);
-                bot.send(message.getChatId(), "Send your current email, please", Keyboards.onlyCancel);
+                bot.send(message.getChatId(), "Send your current email, please", Keyboards.cancel);
                 break;
+                default:
+                    bot.send(message.getChatId(), "to start, send me /start", Keyboards.start);
         }
     }
 
