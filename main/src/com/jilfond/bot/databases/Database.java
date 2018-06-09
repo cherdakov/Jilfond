@@ -11,6 +11,7 @@ import org.sqlite.SQLiteOpenMode;
 
 import java.sql.*;
 import java.util.LinkedList;
+import java.util.List;
 
 public class Database {
     static private final String databaseFileName = "database.s3db";
@@ -258,7 +259,7 @@ public class Database {
         sessionDescription.action = resultSet.getString("action");
         sessionDescription.type = resultSet.getString("type");
         sessionDescription.chatId = resultSet.getLong("chatId");
-        switch (sessionDescription.type){
+        switch (sessionDescription.type) {
             case "BUYER":
                 sessionDescription.object = getWishByWishDatabaseId(foreignKey);
                 break;
@@ -280,7 +281,7 @@ public class Database {
         wish.price = resultSet.getInt("price");
         wish.square = resultSet.getInt("square");
         wish.databaseId = resultSet.getInt("id");
-        wish.buyer =resultSet.getInt("buyer");
+        wish.buyer = resultSet.getInt("buyer");
         resultSet.close();
         return wish;
     }
@@ -300,10 +301,10 @@ public class Database {
         apartment.databaseId = resultSet.getInt("id");
         resultSet.close();
         sql = "SELECT * FROM photos " +
-                "where apartmentId="+apartmentId;
+                "where apartmentId=" + apartmentId;
         statement = connection.createStatement();
         resultSet = statement.executeQuery(sql);
-        while(resultSet.next()){
+        while (resultSet.next()) {
             String photo = resultSet.getString("photo");
             apartment.addPhoto(photo);
         }
@@ -376,4 +377,25 @@ public class Database {
         statement.execute(sql);
     }
 
+    public List<Wish> getWishesBySellerId(Integer sellerId) throws SQLException {
+        List<Wish> wishes = new LinkedList<>();
+        Statement statement = connection.createStatement();
+        String sql =
+                "SELECT DISTINCT w.* FROM apartments a, wishes w " +
+                "WHERE  w.street = a.street AND " +
+                "w.added AND a.added AND " +
+                "w.price >= a.price AND w.square<=a.price";
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            Wish wish = new Wish();
+            wish.street = resultSet.getString("street");
+            wish.buyer = resultSet.getInt("buyer");
+            wish.databaseId = resultSet.getInt("id");
+            wish.price = resultSet.getInt("price");
+            wish.square = resultSet.getInt("square");
+            wishes.add(wish);
+        }
+        resultSet.close();
+        return wishes;
+    }
 }
