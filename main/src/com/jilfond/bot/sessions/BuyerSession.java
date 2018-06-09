@@ -2,11 +2,8 @@ package com.jilfond.bot.sessions;
 
 import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.databases.Database;
-import com.jilfond.bot.objects.Apartment;
-import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.objects.Wish;
 import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.sql.SQLException;
@@ -14,6 +11,43 @@ import java.util.LinkedList;
 
 public class BuyerSession extends Session {
     private Wish wish;
+    private Runnable buyerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            switch (action) {
+                case "NONE":
+                    switch (currentMessage.getText()) {
+                        case "Add":
+                            action = "ADD_WISH";
+                            sendSendStreetRequest();
+                            break;
+                        case "Show Wishes":
+                            try {
+                                sendWishesToBuyer(currentMessage.getFrom().getId());
+                            } catch (SQLException e) {
+                                reply("Error!");
+                                e.printStackTrace();
+                            }
+                            break;
+                        case "Cancel":
+                            //unreachable because this situation is handled by the manager
+                            break;
+                    }
+                    break;
+                case "ADD_WISH":
+                    handleAddAction(currentMessage);
+                    break;
+                case "SHOW_WISHES":
+                    handleShowWishesAction(currentMessage);
+                    break;
+                case "SHOW_APARTMENTS":
+                    //handleShowWishAction(currentMessage);
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+    };
 
     @Override
     protected Object getObject() {
@@ -36,50 +70,7 @@ public class BuyerSession extends Session {
         super(database, sessionDescription);
     }
 
-    @Override
-    public void pushMessage(Message message) {
-        super.pushMessage(message);//for same logic for all sessions
-        try {
-            currentThreadAction.join();
-        } catch (NullPointerException | InterruptedException e) {
-            //its normal situation
-        }
-        currentThreadAction = new Thread(() -> {
-            switch (action) {
-                case "NONE":
-                    switch (message.getText()) {
-                        case "Add":
-                            action = "ADD_WISH";
-                            sendSendStreetRequest();
-                            break;
-                        case "Show Wishes":
-                            try {
-                                sendWishesToBuyer(message.getFrom().getId());
-                            } catch (SQLException e) {
-                                reply("Error!");
-                                e.printStackTrace();
-                            }
-                            break;
-                        case "Cancel":
-                            //unreachable because this situation is handled by the manager
-                            break;
-                    }
-                    break;
-                case "ADD_WISH":
-                    handleAddAction(message);
-                    break;
-                case "SHOW_WISHES":
-                    handleShowWishesAction(message);
-                    break;
-                case "SHOW_APARTMENTS":
-                    //handleShowWishAction(message);
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
-        });
-        currentThreadAction.start();
-    }
+
 
     private void handleShowWishesAction(Message message) {
     }
@@ -171,9 +162,9 @@ public class BuyerSession extends Session {
         }
         for (Wish wish : wishes) {
             String callback = "deleteWish " + wish.databaseId;
-            InlineKeyboardMarkup deleteApartmentKeyboard =
+            InlineKeyboardMarkup deleteWishKeyboard =
                     Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Wish", callback);
-            reply(wish.getDescriptionForBuyer(), deleteApartmentKeyboard);
+            reply(wish.getDescriptionForBuyer(), deleteWishKeyboard);
         }
     }
 
@@ -195,7 +186,7 @@ public class BuyerSession extends Session {
     }
 
     private void sendSendStreetRequest() {
-        reply("Send me street, please", Keyboards.onlyCancel);
+        reply("Send me street, please", Keyboards.cancel);
         state = "SEND_STREET";
     }
 

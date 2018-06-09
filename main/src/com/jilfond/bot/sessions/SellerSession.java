@@ -1,19 +1,60 @@
 package com.jilfond.bot.sessions;
 
-import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.databases.Database;
+import com.jilfond.bot.objects.Wish;
 import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.List;
 
 public class SellerSession extends Session {
     private Apartment apartment;
-
+    private Runnable sellerRunnable = () -> {
+        switch (action) {
+            case "NONE":
+                switch (currentMessage.getText()) {
+                    case "Add":
+                        action = "ADD_APARTMENT";
+                        sendSendStreetRequest();
+                        break;
+                    case "Show Apartments":
+                        try {
+                            sendApartmentsToSeller(currentMessage.getFrom().getId());
+                        } catch (SQLException e) {
+                            reply("Error!");
+                            e.printStackTrace();
+                        }
+                        break;
+                    case "Show Wishes":
+                        try {
+                            sendWishesToSeller(currentMessage.getFrom().getId());
+                        } catch (SQLException e) {
+                            reply("Error!");
+                            e.printStackTrace();
+                        }
+                        break;
+                    case "Cancel":
+                        //unreachable because this situation is handled by the manager
+                        break;
+                }
+                break;
+            case "ADD_APARTMENT":
+                handleAddAction(currentMessage);
+                break;
+            case "SHOW_APARTMENTS":
+                handleShowApartmentsAction(currentMessage);
+                break;
+            case "SHOW_WISHES":
+                //handleShowWishAction(message);
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+    };
     @Override
     protected Object getObject() {
         return apartment;
@@ -26,58 +67,28 @@ public class SellerSession extends Session {
 
     public SellerSession(Database database, SessionDescription sessionDescription) {
         super(database, sessionDescription);
+        runnable = sellerRunnable;
+
     }
 
     public SellerSession(Database database, Long chatId) {
         super(database, chatId);
         apartment = new Apartment(); //only for this constructor
         type = "SELLER";
+        runnable = sellerRunnable;
     }
 
-    @Override
-    public void pushMessage(Message message) {
-        super.pushMessage(message);//for same logic for all sessions
-        System.out.println(message.toString());
-        try {
-            currentThreadAction.join();
-        } catch (NullPointerException | InterruptedException e) {
-            //its normal situation
+    private void sendWishesToSeller(Integer sellerId) throws SQLException {
+        List<Wish> wishes = database.getWishesBySellerId(sellerId);
+        if (wishes.isEmpty()) {
+            reply("No good wishes.");
         }
-        currentThreadAction = new Thread(() -> {
-            switch (action) {
-                case "NONE":
-                    switch (message.getText()) {
-                        case "Add":
-                            action = "ADD_APARTMENT";
-                            sendSendStreetRequest();
-                            break;
-                        case "Show Apartments":
-                            try {
-                                sendApartmentsToSeller(message.getFrom().getId());
-                            } catch (SQLException e) {
-                                reply("Error!");
-                                e.printStackTrace();
-                            }
-                            break;
-                        case "Cancel":
-                            //unreachable because this situation is handled by the manager
-                            break;
-                    }
-                    break;
-                case "ADD_APARTMENT":
-                    handleAddAction(message);
-                    break;
-                case "SHOW_APARTMENTS":
-                    handleShowApartmentsAction(message);
-                    break;
-                case "SHOW_WISHES":
-                    //handleShowWishAction(message);
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
-        });
-        currentThreadAction.start();
+        for (Wish wish : wishes) {
+            String callback = "getUser " + wish.buyer;
+            InlineKeyboardMarkup getUserKeyboard =
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("getBuyer", callback);
+            reply(wish.getDescriptionForBuyer(), getUserKeyboard);
+        }
     }
 
     private void sendApartmentsToSeller(Integer id) throws SQLException {
@@ -257,7 +268,7 @@ public class SellerSession extends Session {
     }
 
     private void sendSendStreetRequest() {
-        reply("Send me street, please", Keyboards.onlyCancel);
+        reply("Send me street, please", Keyboards.cancel);
         state = "SEND_STREET";
     }
 

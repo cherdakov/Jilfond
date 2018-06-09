@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class Session {
@@ -21,20 +22,41 @@ public class Session {
     protected String action = "NONE";
     protected Bot bot;
     protected Long chatId;
+    protected Message currentMessage;
     protected Thread currentThreadAction;
     protected LinkedList<String> actions = new LinkedList<>();
     protected ReplyKeyboardMarkup selectActionKeyboard = createSelectActionKeyboard();
-
+    protected Runnable runnable;
+    private ConcurrentLinkedQueue<Message> messages = new ConcurrentLinkedQueue<>();
     protected String type;
     private Date lastActivityTime = Calendar.getInstance().getTime();
+    private Thread messageHandlerThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while(true){
+                Message message = messages.poll();
+                if(message!=null){
+                    currentMessage = message;
+                    try {
+                        currentThreadAction.join();
+                    } catch (NullPointerException | InterruptedException e) {
+                        //its normal situation
+                    }
+                    currentThreadAction = new Thread(runnable);
+                    currentThreadAction.start();
+                }
+            }
+        }
+    });
 
     public Session(Database database, Long chatId) {
         this.bot = Bot.getCurrentBot();
         this.chatId = chatId;
         this.database = database;
         sendSelectActionRequest();
-        System.out.println("createSession " + chatId);
+        messageHandlerThread.start();
     }
+
     public Session(Database database, SessionDescription sessionDescription) {
         this.bot = Bot.getCurrentBot();
         this.chatId = sessionDescription.chatId;
@@ -43,6 +65,7 @@ public class Session {
         this.state = sessionDescription.state;
         this.database = database;
         setObject(sessionDescription.object);
+        messageHandlerThread.start();
     }
 
     void reply(String text, ReplyKeyboard replyKeyboard) {
@@ -66,10 +89,11 @@ public class Session {
         return Keyboards.make(actions, true);
     }
 
-    @Virtual
     public void pushMessage(Message message) {
+        messages.offer(message);
         lastActivityTime = Calendar.getInstance().getTime();
     }
+
 
     public String getState() {
         return state;
