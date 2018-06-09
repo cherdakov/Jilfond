@@ -75,7 +75,7 @@ public class Keyboards {
         replyKeyboardMarkup.setKeyboard(keyboardRows);
         return  replyKeyboardMarkup;
     }
-    static ReplyKeyboardMarkup make(LinkedList<String> buttons){
+    public static ReplyKeyboardMarkup make(LinkedList<String> buttons){
         return make(buttons,false);
     }
 }

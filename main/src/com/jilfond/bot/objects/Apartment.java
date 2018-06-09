@@ -1,6 +1,5 @@
 package com.jilfond.bot.objects;
 
-import org.telegram.telegrambots.api.objects.PhotoSize;
 
 import java.util.LinkedList;
 import java.util.List;

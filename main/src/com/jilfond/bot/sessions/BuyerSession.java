@@ -2,6 +2,7 @@ package com.jilfond.bot.sessions;
 
 import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.databases.Database;
+import com.jilfond.bot.managers.Notifier;
 import com.jilfond.bot.objects.Wish;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -62,12 +63,13 @@ public class BuyerSession extends Session {
     public BuyerSession(Database database, Long chatId) {
         super(database, chatId);
         type = "BUYER";
-        wish = new Wish();
-
+        wish = new Wish();//only for this constructor
+        runnable = buyerRunnable;
     }
 
     public BuyerSession(Database database, SessionDescription sessionDescription) {
         super(database, sessionDescription);
+        runnable = buyerRunnable;
     }
 
 
@@ -81,7 +83,6 @@ public class BuyerSession extends Session {
             case "SEND_STREET":
                 if (text.equals("Cancel")) {
                     sendSelectActionRequest();
-                    action = "NONE";
                 } else {
                     wish.street = text;
                     sendSendPriceRequest();
@@ -90,7 +91,6 @@ public class BuyerSession extends Session {
             case "SEND_PRICE":
                 switch (text) {
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -109,7 +109,6 @@ public class BuyerSession extends Session {
             case "SEND_SQUARE":
                 switch (text) {
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -133,17 +132,16 @@ public class BuyerSession extends Session {
                             database.addWish(wish);
                             reply("Done!");
                             sendSelectActionRequest();
+                            new Notifier(wish, "WISH").start();
                         } catch (SQLException e) {
                             e.printStackTrace();
                             reply("Error!");
                         }
-                        action = "NONE";
                         break;
                     case "Back":
                         sendSendSquareRequest();
                         break;
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                 }
@@ -190,15 +188,6 @@ public class BuyerSession extends Session {
         state = "SEND_STREET";
     }
 
-    private void sendSendHouseNumberRequest() {
-        reply("Send me number of house, please", Keyboards.backAndCancel);
-        state = "SEND_HOUSE_NUMBER";
-    }
-
-    private void sendSendApartmentNumberRequest() {
-        reply("Send me number of apartment, please", Keyboards.backAndCancel);
-        state = "SEND_APARTMENT_NUMBER";
-    }
 
     private void sendConfirmRequest() {
         reply("Confirm information", Keyboards.yesBackAndCancel);

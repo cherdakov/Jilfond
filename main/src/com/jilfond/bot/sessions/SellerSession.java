@@ -1,6 +1,7 @@
 package com.jilfond.bot.sessions;
 
 import com.jilfond.bot.Keyboards;
+import com.jilfond.bot.managers.Notifier;
 import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.databases.Database;
 import com.jilfond.bot.objects.Wish;
@@ -30,12 +31,8 @@ public class SellerSession extends Session {
                         }
                         break;
                     case "Show Wishes":
-                        try {
-                            sendWishesToSeller(currentMessage.getFrom().getId());
-                        } catch (SQLException e) {
-                            reply("Error!");
-                            e.printStackTrace();
-                        }
+                        action = "SHOW_WISHES";
+                        sendSelectWishesTypeRequest();
                         break;
                     case "Cancel":
                         //unreachable because this situation is handled by the manager
@@ -49,12 +46,14 @@ public class SellerSession extends Session {
                 handleShowApartmentsAction(currentMessage);
                 break;
             case "SHOW_WISHES":
-                //handleShowWishAction(message);
+                handleShowWishesAction(currentMessage);
                 break;
             default:
                 throw new IllegalStateException();
         }
     };
+
+
     @Override
     protected Object getObject() {
         return apartment;
@@ -78,15 +77,28 @@ public class SellerSession extends Session {
         runnable = sellerRunnable;
     }
 
-    private void sendWishesToSeller(Integer sellerId) throws SQLException {
-        List<Wish> wishes = database.getWishesBySellerId(sellerId);
+    private void sendAllWishesToSeller() throws SQLException {
+        List<Wish> wishes = database.getAllWishes();
         if (wishes.isEmpty()) {
             reply("No good wishes.");
         }
         for (Wish wish : wishes) {
             String callback = "getUser " + wish.buyer;
             InlineKeyboardMarkup getUserKeyboard =
-                    Keyboards.makeOneButtonInlineKeyboardMarkup("getBuyer", callback);
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
+            reply(wish.getDescriptionForBuyer(), getUserKeyboard);
+        }
+    }
+
+    private void sendSmartWishesToSeller(Integer sellerId) throws SQLException {
+        List<Wish> wishes = database.getSmartWishesBySellerId(sellerId);
+        if (wishes.isEmpty()) {
+            reply("No good wishes.");
+        }
+        for (Wish wish : wishes) {
+            String callback = "getUser " + wish.buyer;
+            InlineKeyboardMarkup getUserKeyboard =
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
             reply(wish.getDescriptionForBuyer(), getUserKeyboard);
         }
     }
@@ -118,7 +130,6 @@ public class SellerSession extends Session {
             case "SEND_STREET":
                 if (text.equals("Cancel")) {
                     sendSelectActionRequest();
-                    action = "NONE";
                 } else {
                     apartment.street = text;
                     sendSendHouseNumberRequest();
@@ -127,7 +138,6 @@ public class SellerSession extends Session {
             case "SEND_HOUSE_NUMBER":
                 switch (text) {
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -146,7 +156,6 @@ public class SellerSession extends Session {
             case "SEND_APARTMENT_NUMBER":
                 switch (text) {
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -165,7 +174,6 @@ public class SellerSession extends Session {
             case "SEND_PRICE":
                 switch (text) {
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -184,7 +192,6 @@ public class SellerSession extends Session {
             case "SEND_SQUARE":
                 switch (text) {
                     case "Cancel":
-                        action = "NONE";
                         sendSelectActionRequest();
                         break;
                     case "Back":
@@ -208,7 +215,6 @@ public class SellerSession extends Session {
                 } else {
                     switch (text) {
                         case "Cancel":
-                            action = "NONE";
                             sendSelectActionRequest();
                             break;
                         case "Back":
@@ -227,18 +233,18 @@ public class SellerSession extends Session {
                             database.addApartment(apartment);
                             reply("Done!");
                             sendSelectActionRequest();
+                            apartment.seller=-1;
+                            new Notifier(apartment, "APARTMENT").start();
                         } catch (SQLException e) {
                             e.printStackTrace();
                             reply("Error!");
                         }
-                        action = "NONE";
                         break;
                     case "Back":
                         sendAddPicturesRequest();
                         apartment.photos.clear();
                         break;
                     case "Cancel":
-                        action = "NONE";
                         apartment.photos.clear();
                         sendSelectActionRequest();
                         break;
@@ -251,6 +257,24 @@ public class SellerSession extends Session {
         }
     }
 
+    private void handleShowWishesAction(Message currentMessage) {
+        try {
+            switch (currentMessage.getText()) {
+                case "All":
+                    sendAllWishesToSeller();
+                    sendSelectActionRequest();
+                    break;
+                case "Smart":
+                    sendSmartWishesToSeller(currentMessage.getFrom().getId());
+                    sendSelectActionRequest();
+                    break;
+            }
+        } catch (SQLException e) {
+            reply("Error!");
+            e.printStackTrace();
+        }
+    }
+
     private void sendAddPicturesRequest() {
         reply("Send me pictures, please", Keyboards.backCancelAndNo);
         state = "SEND_PICTURE";
@@ -260,7 +284,6 @@ public class SellerSession extends Session {
         reply("Send me square, please", Keyboards.backAndCancel);
         state = "SEND_SQUARE";
     }
-
 
     private void sendSendPriceRequest() {
         reply("Send me price, please", Keyboards.backAndCancel);
@@ -286,6 +309,14 @@ public class SellerSession extends Session {
         reply("Confirm information", Keyboards.yesBackAndCancel);
         reply(apartment.toString());
         state = "CONFIRM";
+    }
+
+    private void sendSelectWishesTypeRequest() {
+        LinkedList<String> types = new LinkedList<>();
+        types.add("All");
+        types.add("Smart");
+        reply("Select wishes type", Keyboards.make(types));
+        state = "SELECT_WISHES_TYPE";
     }
 
 }

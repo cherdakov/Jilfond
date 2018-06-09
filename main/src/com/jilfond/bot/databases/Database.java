@@ -377,14 +377,12 @@ public class Database {
         statement.execute(sql);
     }
 
-    public List<Wish> getWishesBySellerId(Integer sellerId) throws SQLException {
+    public List<Wish> getAllWishes() throws SQLException {
         List<Wish> wishes = new LinkedList<>();
         Statement statement = connection.createStatement();
         String sql =
-                "SELECT DISTINCT w.* FROM apartments a, wishes w " +
-                "WHERE  w.street = a.street AND " +
-                "w.added AND a.added AND " +
-                "w.price >= a.price AND w.square<=a.price";
+                "SELECT * FROM wishes " +
+                        "WHERE added";
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             Wish wish = new Wish();
@@ -397,5 +395,77 @@ public class Database {
         }
         resultSet.close();
         return wishes;
+    }
+
+    public List<Wish> getSmartWishesBySellerId(Integer sellerId) throws SQLException {
+        List<Wish> wishes = new LinkedList<>();
+        Statement statement = connection.createStatement();
+        String sql =
+                "SELECT DISTINCT w.* FROM apartments a, wishes w " +
+                        "WHERE  w.street = a.street AND " +
+                        "w.added AND a.added AND " +
+                        "w.price >= a.price AND w.square<=a.price";
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            Wish wish = new Wish();
+            wish.street = resultSet.getString("street");
+            wish.buyer = resultSet.getInt("buyer");
+            wish.databaseId = resultSet.getInt("id");
+            wish.price = resultSet.getInt("price");
+            wish.square = resultSet.getInt("square");
+            wishes.add(wish);
+        }
+        resultSet.close();
+        return wishes;
+    }
+
+
+    public LinkedList<BotUser> getUsersWithApartmentsOnStreet(String street, Integer telegramId) throws SQLException {
+        LinkedList<BotUser> users = new LinkedList<>();
+        Statement statement = connection.createStatement();
+        /*
+        String sql =
+                "SELECT * FROM users " +
+                        "WHERE telegramId in (SELECT seller FROM apartments WHERE street = \'" + street + "\' and seller <> " +telegramId+")";
+                */
+
+        String sql =
+                "SELECT * FROM users " +
+                        "WHERE telegramId in (SELECT seller FROM apartments WHERE street = \'" + street + "\' )";
+
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            BotUser botUser = new BotUser();
+            botUser.telegramId = resultSet.getInt("telegramId");
+            botUser.firstName = resultSet.getString("firstName");
+            botUser.lastName = resultSet.getString("lastName");
+            botUser.userName = resultSet.getString("userName");
+            botUser.email = resultSet.getString("email");
+            botUser.phoneNumber = resultSet.getString("phoneNumber");
+            users.add(botUser);
+        }
+        resultSet.close();
+        return users;
+    }
+
+    public LinkedList<BotUser> getUsersWithWishesOnStreet(String street, Integer telegramId) throws SQLException {
+        LinkedList<BotUser> users = new LinkedList<>();
+        Statement statement = connection.createStatement();
+        String sql =
+                "SELECT * FROM users " +
+                        "WHERE telegramId in (SELECT buyer FROM wishes WHERE street = " + street + " and buyer <> " +telegramId+")";
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            BotUser botUser = new BotUser();
+            botUser.telegramId = resultSet.getInt("telegramId");
+            botUser.firstName = resultSet.getString("firstName");
+            botUser.lastName = resultSet.getString("lastName");
+            botUser.userName = resultSet.getString("userName");
+            botUser.email = resultSet.getString("email");
+            botUser.phoneNumber = resultSet.getString("phoneNumber");
+            users.add(botUser);
+        }
+        resultSet.close();
+        return users;
     }
 }

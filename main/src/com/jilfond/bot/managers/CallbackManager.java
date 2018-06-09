@@ -22,7 +22,6 @@ public class CallbackManager {
         try {
         switch (command){
             case "deleteWish":
-
                 bot.deleteMessage(message.getMessageId(),message.getChatId());
                 database.deleteWishById(id);
                 break;

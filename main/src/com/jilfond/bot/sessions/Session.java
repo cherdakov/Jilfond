@@ -33,9 +33,9 @@ public class Session {
     private Thread messageHandlerThread = new Thread(new Runnable() {
         @Override
         public void run() {
-            while(true){
+            while (true) {
                 Message message = messages.poll();
-                if(message!=null){
+                if (message != null) {
                     currentMessage = message;
                     try {
                         currentThreadAction.join();
@@ -100,6 +100,7 @@ public class Session {
     }
 
     public void sendSelectActionRequest() {
+        action = "NONE";
         state = "SELECT_ACTION";
         bot.send(chatId, "Select Action", selectActionKeyboard);
     }
