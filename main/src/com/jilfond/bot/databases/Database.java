@@ -3,8 +3,6 @@ package com.jilfond.bot.databases;
 import com.jilfond.bot.objects.BotUser;
 import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.objects.Wish;
-import com.jilfond.bot.sessions.SellerSession;
-import com.jilfond.bot.sessions.Session;
 import com.jilfond.bot.sessions.SessionDescription;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteOpenMode;
@@ -299,15 +297,7 @@ public class Database {
         apartment.square = resultSet.getInt("square");
         apartment.seller = resultSet.getInt("seller");
         apartment.databaseId = resultSet.getInt("id");
-        resultSet.close();
-        sql = "SELECT * FROM photos " +
-                "where apartmentId=" + apartmentId;
-        statement = connection.createStatement();
-        resultSet = statement.executeQuery(sql);
-        while (resultSet.next()) {
-            String photo = resultSet.getString("photo");
-            apartment.addPhoto(photo);
-        }
+        apartment.photos = getPhotosByApartmentId(apartment.databaseId);
         resultSet.close();
         return apartment;
     }
@@ -377,12 +367,12 @@ public class Database {
         statement.execute(sql);
     }
 
-    public List<Wish> getAllWishes() throws SQLException {
+    public List<Wish> getAllWishes(Integer id) throws SQLException {
         List<Wish> wishes = new LinkedList<>();
         Statement statement = connection.createStatement();
         String sql =
                 "SELECT * FROM wishes " +
-                        "WHERE added";
+                        "WHERE added and buyer <> " + id;
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             Wish wish = new Wish();
@@ -403,6 +393,7 @@ public class Database {
         String sql =
                 "SELECT DISTINCT w.* FROM apartments a, wishes w " +
                         "WHERE  w.street = a.street AND " +
+                        "w.buyer <> " + sellerId + " AND " +
                         "w.added AND a.added AND " +
                         "w.price >= a.price AND w.square<=a.price";
         ResultSet resultSet = statement.executeQuery(sql);
@@ -423,15 +414,9 @@ public class Database {
     public LinkedList<BotUser> getUsersWithApartmentsOnStreet(String street, Integer telegramId) throws SQLException {
         LinkedList<BotUser> users = new LinkedList<>();
         Statement statement = connection.createStatement();
-        /*
-        String sql =
-                "SELECT * FROM users " +
-                        "WHERE telegramId in (SELECT seller FROM apartments WHERE street = \'" + street + "\' and seller <> " +telegramId+")";
-                */
 
-        String sql =
-                "SELECT * FROM users " +
-                        "WHERE telegramId in (SELECT seller FROM apartments WHERE street = \'" + street + "\' )";
+        String sql = "SELECT * FROM users " +
+                "WHERE telegramId in (SELECT seller FROM apartments WHERE street = \'" + street + "\' and seller <> " + telegramId + ")";
 
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
@@ -447,13 +432,73 @@ public class Database {
         resultSet.close();
         return users;
     }
+    public List<Apartment> getSmartApartmentsByBuyerId(Integer buyerId) throws SQLException {
+        List<Apartment> apartments = new LinkedList<>();
+        Statement statement = connection.createStatement();
+        String sql =
+                "SELECT DISTINCT a.* FROM apartments a, wishes w " +
+                        "WHERE  w.street = a.street AND " +
+                        "a.seller <> " + buyerId + " " +
+                        "w.added AND a.added AND " +
+                        "w.price >= a.price AND w.square<=a.price";
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            Apartment apartment = new Apartment();
+            apartment.street = resultSet.getString("street");
+            apartment.houseNumber = resultSet.getString("houseNumber");
+            apartment.number = resultSet.getInt("number");
+            apartment.price = resultSet.getInt("price");
+            apartment.square = resultSet.getInt("square");
+            apartment.seller = resultSet.getInt("seller");
+            apartment.databaseId = resultSet.getInt("id");
+            apartments.add(apartment);
+        }
+        resultSet.close();
+        return apartments;
+    }
+    public List<Apartment> getAllApartmentsByBuyerId(Integer buyerId) throws SQLException {
+        List<Apartment> apartments = new LinkedList<>();
+        Statement statement = connection.createStatement();
+        String sql =
+                "SELECT * FROM apartments a " +
+                        "WHERE seller <> "+buyerId;
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            Apartment apartment = new Apartment();
+            apartment.street = resultSet.getString("street");
+            apartment.houseNumber = resultSet.getString("houseNumber");
+            apartment.number = resultSet.getInt("number");
+            apartment.price = resultSet.getInt("price");
+            apartment.square = resultSet.getInt("square");
+            apartment.seller = resultSet.getInt("seller");
+            apartment.databaseId = resultSet.getInt("id");
+            apartment.photos = getPhotosByApartmentId(apartment.databaseId);
+            apartments.add(apartment);
+        }
+        resultSet.close();
+        return apartments;
+    }
+
+    List<String> getPhotosByApartmentId(Integer apartmentId) throws SQLException {
+        List<String> photos = new LinkedList<>();
+        String sql = "SELECT * FROM photos " +
+                "where apartmentId = " + apartmentId;
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        while (resultSet.next()) {
+            String photo = resultSet.getString("photo");
+            photos.add(photo);
+        }
+        resultSet.close();
+        return photos;
+    }
 
     public LinkedList<BotUser> getUsersWithWishesOnStreet(String street, Integer telegramId) throws SQLException {
         LinkedList<BotUser> users = new LinkedList<>();
         Statement statement = connection.createStatement();
         String sql =
                 "SELECT * FROM users " +
-                        "WHERE telegramId in (SELECT buyer FROM wishes WHERE street = " + street + " and buyer <> " +telegramId+")";
+                        "WHERE telegramId in (SELECT buyer FROM wishes WHERE street = '" + street + "' and buyer <> " + telegramId + ")";
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             BotUser botUser = new BotUser();
