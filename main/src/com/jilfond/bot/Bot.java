@@ -6,7 +6,10 @@ import com.jilfond.bot.managers.MessageManager;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageCaption;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.*;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -102,4 +105,33 @@ public class Bot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+    public void updateText(Long chatId, Integer messageId, String text, InlineKeyboardMarkup replyMarkup){
+        EditMessageText editMessageText = new EditMessageText()
+                .setChatId(chatId)
+                .setMessageId(messageId)
+                .setText(text);
+        if(replyMarkup!=null){
+            editMessageText.setReplyMarkup(replyMarkup);
+        }
+        try {
+            execute(editMessageText);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+    public void updateCaption(Long chatId, Integer messageId, String text, InlineKeyboardMarkup replyMarkup){
+        EditMessageCaption editMessageCaption = new EditMessageCaption()
+                .setChatId(String.valueOf(chatId))
+                .setMessageId(messageId)
+                .setCaption(text);
+        if(replyMarkup!=null){
+            editMessageCaption.setReplyMarkup(replyMarkup);
+        }
+        try {
+            execute(editMessageCaption);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
