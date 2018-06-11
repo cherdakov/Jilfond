@@ -77,8 +77,8 @@ public class SellerSession extends Session {
         runnable = sellerRunnable;
     }
 
-    private void sendAllWishesToSeller() throws SQLException {
-        List<Wish> wishes = database.getAllWishes();
+    private void sendAllWishesToSeller(Integer sellerId) throws SQLException {
+        List<Wish> wishes = database.getAllWishes(sellerId);
         if (wishes.isEmpty()) {
             reply("No good wishes.");
         }
@@ -113,9 +113,9 @@ public class SellerSession extends Session {
             InlineKeyboardMarkup deleteApartmentKeyboard =
                     Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Apartment", callback);
             if (apartment.photos.isEmpty()) {
-                reply(apartment.getDescriptionForSeller(), deleteApartmentKeyboard);
+                reply(apartment.getDescription(), deleteApartmentKeyboard);
             } else {
-                replyWithPhoto(apartment.photos.get(0), apartment.getDescriptionForSeller(), deleteApartmentKeyboard);
+                replyWithPhoto(apartment.photos.get(0), apartment.getDescription(), deleteApartmentKeyboard);
             }
         }
     }
@@ -261,17 +261,17 @@ public class SellerSession extends Session {
         try {
             switch (currentMessage.getText()) {
                 case "All":
-                    sendAllWishesToSeller();
-                    sendSelectActionRequest();
+                    sendAllWishesToSeller(currentMessage.getFrom().getId());
                     break;
                 case "Smart":
                     sendSmartWishesToSeller(currentMessage.getFrom().getId());
-                    sendSelectActionRequest();
                     break;
             }
         } catch (SQLException e) {
             reply("Error!");
             e.printStackTrace();
+        } finally {
+            sendSelectActionRequest();
         }
     }
 
