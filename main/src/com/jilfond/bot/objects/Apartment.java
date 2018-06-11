@@ -32,7 +32,7 @@ public class Apartment {
                 '}';
     }
 
-    public String getDescriptionForSeller() {
+    public String getDescription() {
         return "street = " + street + "\n" +
                 "houseNumber = " + houseNumber + "\n" +
                 "number = " + number + "\n" +

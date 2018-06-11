@@ -16,15 +16,36 @@ public class BotUser {
     public String toString() {
         return "BotUser{" +
                 "telegramId=" + telegramId +
-                ", firstName=" + firstName +
-                ", lastName=" + lastName +
-                ", userName=" + userName +
-                ", phoneNumber=" + phoneNumber +
-                ", email=" + email +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", userName='" + userName + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
                 '}';
     }
 
-    public BotUser(){
+    public String getContact() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Contact details:\n");
+        if (firstName != null && !firstName.equals("null")) {
+            stringBuilder.append(firstName + "\n");
+        }
+        if (lastName != null && !lastName.equals("null")) {
+            stringBuilder.append(lastName + "\n");
+        }
+        if (userName != null && !userName.equals("null")) {
+            stringBuilder.append("@" + userName + "\n");
+        }
+        if (phoneNumber != null && !phoneNumber.equals("null")) {
+            stringBuilder.append(phoneNumber + "\n");
+        }
+        if (email != null && !email.equals("null")) {
+            stringBuilder.append(email + "\n");
+        }
+        return stringBuilder.toString();
+    }
+
+    public BotUser() {
 
     }
 
@@ -43,53 +64,4 @@ public class BotUser {
         }
     }
 
-
-    public String getValuesForDB() {
-        //return String format (telegramId, firstName, lastName, userName, phoneNumber, email)
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("(");
-        stringBuilder.append(telegramId);
-        stringBuilder.append(", ");
-        if (firstName.equals("null")) {
-            stringBuilder.append(firstName);
-        } else {
-            stringBuilder.append("'");
-            stringBuilder.append(firstName);
-            stringBuilder.append("'");
-        }
-        stringBuilder.append(", ");
-        if (lastName.equals("null")) {
-            stringBuilder.append(lastName);
-        } else {
-            stringBuilder.append("'");
-            stringBuilder.append(lastName);
-            stringBuilder.append("'");
-        }
-        stringBuilder.append(", ");
-        if (userName.equals("null")) {
-            stringBuilder.append(userName);
-        } else {
-            stringBuilder.append("'");
-            stringBuilder.append(userName);
-            stringBuilder.append("'");
-        }
-        stringBuilder.append(", ");
-        if (phoneNumber.equals("null")) {
-            stringBuilder.append(phoneNumber);
-        } else {
-            stringBuilder.append("'");
-            stringBuilder.append(phoneNumber);
-            stringBuilder.append("'");
-        }
-        stringBuilder.append(", ");
-        if (email.equals("null")) {
-            stringBuilder.append(email);
-        } else {
-            stringBuilder.append("'");
-            stringBuilder.append(email);
-            stringBuilder.append("'");
-        }
-        stringBuilder.append(")");
-        return stringBuilder.toString();
-    }
 }
