@@ -3,52 +3,113 @@ package com.jilfond.bot.sessions;
 import com.jilfond.bot.Keyboards;
 import com.jilfond.bot.databases.Database;
 import com.jilfond.bot.managers.Notifier;
+import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.objects.Wish;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.List;
 
 public class BuyerSession extends Session {
     private Wish wish;
-    private Runnable buyerRunnable = new Runnable() {
-        @Override
-        public void run() {
-            switch (action) {
-                case "NONE":
-                    switch (currentMessage.getText()) {
-                        case "Add":
-                            action = "ADD_WISH";
-                            sendSendStreetRequest();
-                            break;
-                        case "Show Wishes":
-                            try {
-                                sendWishesToBuyer(currentMessage.getFrom().getId());
-                            } catch (SQLException e) {
-                                reply("Error!");
-                                e.printStackTrace();
-                            }
-                            break;
-                        case "Cancel":
-                            //unreachable because this situation is handled by the manager
-                            break;
-                    }
-                    break;
-                case "ADD_WISH":
-                    handleAddAction(currentMessage);
-                    break;
-                case "SHOW_WISHES":
-                    handleShowWishesAction(currentMessage);
-                    break;
-                case "SHOW_APARTMENTS":
-                    //handleShowWishAction(currentMessage);
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
+    private Runnable buyerRunnable = () -> {
+        switch (action) {
+            case "NONE":
+                switch (currentMessage.getText()) {
+                    case "Add":
+                        action = "ADD_WISH";
+                        sendSendStreetRequest();
+                        break;
+                    case "Show Wishes":
+                        try {
+                            sendWishesToBuyer(currentMessage.getFrom().getId());
+                        } catch (SQLException e) {
+                            reply("Error!");
+                            e.printStackTrace();
+                        }
+                        break;
+                    case "Show Apartments":
+                        action = "SHOW_APARTMENTS";
+                        sendSelectApartmentsTypeRequest();
+                        break;
+                    case "Cancel":
+                        //unreachable because this situation is handled by the manager
+                        break;
+                }
+                break;
+            case "ADD_WISH":
+                handleAddAction(currentMessage);
+                break;
+            case "SHOW_WISHES":
+                handleShowWishesAction(currentMessage);
+                break;
+            case "SHOW_APARTMENTS":
+                handleShowApartmentsAction(currentMessage);
+                break;
+            default:
+                throw new IllegalStateException();
         }
     };
+
+    private void sendSelectApartmentsTypeRequest() {
+        LinkedList<String> types = new LinkedList<>();
+        types.add("All");
+        types.add("Smart");
+        reply("Select Apartments type", Keyboards.make(types));
+        state = "SELECT_APARTMENTS_TYPE";
+    }
+
+    private void handleShowApartmentsAction(Message currentMessage) {
+        try {
+            switch (currentMessage.getText()) {
+                case "All":
+                    sendAllApartmentsToBuyer(currentMessage.getFrom().getId());
+                    sendSelectActionRequest();
+                    break;
+                case "Smart":
+                    sendSmartApartmentsToBuyer(currentMessage.getFrom().getId());
+                    sendSelectActionRequest();
+                    break;
+            }
+        } catch (SQLException e) {
+            reply("Error!");
+            e.printStackTrace();
+        } finally {
+            sendSelectActionRequest();
+        }
+    }
+
+    private void sendSmartApartmentsToBuyer(Integer buyerId) throws SQLException {
+        List<Apartment> apartments = database.getSmartApartmentsByBuyerId(buyerId);
+        if (apartments.isEmpty()) {
+            reply("No good apartments.");
+        }
+        for (Apartment apartment : apartments) {
+            String callback = "getUser " + apartment.seller;
+            InlineKeyboardMarkup getUserKeyboard =
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
+            reply(wish.getDescriptionForBuyer(), getUserKeyboard);
+        }
+    }
+
+    private void sendAllApartmentsToBuyer(Integer buyerId) throws SQLException {
+        List<Apartment> apartments = database.getAllApartmentsByBuyerId(buyerId);
+        if (apartments.isEmpty()) {
+            reply("No good apartments.");
+        }
+        for (Apartment apartment : apartments) {
+            String callback = "getUser " + apartment.seller;
+            InlineKeyboardMarkup getUserKeyboard =
+                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
+            if (apartment.photos.isEmpty()) {
+                reply(apartment.getDescription(), getUserKeyboard);
+            } else {
+                replyWithPhoto(apartment.photos.get(0), apartment.getDescription(), getUserKeyboard);
+            }
+        }
+    }
 
     @Override
     protected Object getObject() {
