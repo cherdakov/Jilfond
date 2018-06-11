@@ -167,11 +167,6 @@ public class BuyerSession extends Session {
     }
 
 
-    private void sendAddPicturesRequest() {
-        reply("Send me pictures, please", Keyboards.backCancelAndNo);
-        state = "SEND_PICTURE";
-    }
-
     private void sendSendSquareRequest() {
         reply("Send me square, please", Keyboards.backAndCancel);
         state = "SEND_SQUARE";

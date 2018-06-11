@@ -226,7 +226,7 @@ public class SellerSession extends Session {
                     }
                 }
                 break;
-            case "CONFIRM":
+                case "CONFIRM":
                 switch (text) {
                     case "Yes":
                         try {
