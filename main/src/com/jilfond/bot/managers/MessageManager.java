@@ -36,10 +36,11 @@ public class MessageManager {
                 try {
                     Thread.sleep(1000);
                     Date currentTime = Calendar.getInstance().getTime();
-                    for (Long key : sessions.keySet()) {
-                        Session session = sessions.get(key);
-                        if (currentTime.getTime() - session.getLastActivityTime().getTime() > 1000 * 3) {
-                            synchronized (mutex) {
+                    synchronized (mutex) {
+                        for (Long key : sessions.keySet()) {
+                            Session session = sessions.get(key);
+                            if (currentTime.getTime() - session.getLastActivityTime().getTime() > 1000 * 3) {
+
                                 System.out.println("activityObserverThread:");
                                 System.out.println("remove " + key);
                                 try {
@@ -73,11 +74,8 @@ public class MessageManager {
         Long chatId = message.getChatId();
         Integer userId = message.getFrom().getId();
 
-        if (!message.hasText()) {
-            sessions.get(chatId).pushMessage(message);
-            return;
-        }
-        if (message.getText().equals("/start")) {
+
+        if (message.hasText() && message.getText().equals("/start")) {
             database.deleteSession(chatId);
             sessions.remove(chatId);
             sendSelectActionRequest(chatId);
@@ -88,7 +86,7 @@ public class MessageManager {
             }
         } else {
             synchronized (mutex) {
-                if(!sessions.containsKey(chatId) && database.sessionExist(chatId)){//TODO:can be optimized
+                if (!sessions.containsKey(chatId) && database.sessionExist(chatId)) {//TODO:can be optimized
                     SessionDescription sessionDescription = database.getSession(chatId);
                     switch (sessionDescription.type) {
                         case "SELLER":
@@ -156,8 +154,8 @@ public class MessageManager {
                 usersWhoChangingEmail.add(userId);
                 bot.send(message.getChatId(), "Send your current email, please", Keyboards.cancel);
                 break;
-                default:
-                    bot.send(message.getChatId(), "to start, send me /start", Keyboards.start);
+            default:
+                bot.send(message.getChatId(), "to start, send me /start", Keyboards.start);
         }
     }
 
