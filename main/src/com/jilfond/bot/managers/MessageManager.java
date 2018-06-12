@@ -34,12 +34,12 @@ public class MessageManager {
             System.out.println("activityObserverThread start");
             while (true) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1000 * 60 * 15);
                     Date currentTime = Calendar.getInstance().getTime();
                     synchronized (mutex) {
                         for (Long key : sessions.keySet()) {
                             Session session = sessions.get(key);
-                            if (currentTime.getTime() - session.getLastActivityTime().getTime() > 1000 * 3) {
+                            if (currentTime.getTime() - session.getLastActivityTime().getTime() > 1000 * 60 * 60) {
 
                                 System.out.println("activityObserverThread:");
                                 System.out.println("remove " + key);

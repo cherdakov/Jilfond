@@ -47,7 +47,17 @@ public class CallbackManager {
                                 message.getCaption() + "\n" + contactDetails,
                                 null);
                     }
-
+                    break;
+                case "ignoreWish":
+                    Integer objectId = Integer.valueOf(callback.split(" ")[2]);
+                    database.ignoreWish(id,objectId);
+                    bot.deleteMessage(message.getMessageId(), message.getChatId());
+                    break;
+                case "ignoreApartment":
+                    objectId = Integer.valueOf(callback.split(" ")[2]);
+                    database.ignoreApartment(id,objectId);
+                    bot.deleteMessage(message.getMessageId(), message.getChatId());
+                    break;
             }
         } catch (SQLException e) {
             e.printStackTrace();

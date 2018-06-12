@@ -7,6 +7,7 @@ import com.jilfond.bot.objects.Apartment;
 import com.jilfond.bot.objects.Wish;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -66,11 +67,9 @@ public class BuyerSession extends Session {
             switch (currentMessage.getText()) {
                 case "All":
                     sendAllApartmentsToBuyer(currentMessage.getFrom().getId());
-                    sendSelectActionRequest();
                     break;
                 case "Smart":
                     sendSmartApartmentsToBuyer(currentMessage.getFrom().getId());
-                    sendSelectActionRequest();
                     break;
             }
         } catch (SQLException e) {
@@ -87,12 +86,10 @@ public class BuyerSession extends Session {
             reply("No good apartments.");
         }
         for (Apartment apartment : apartments) {
-            String callback = "getUser " + apartment.seller;
-            InlineKeyboardMarkup getUserKeyboard =
-                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
-            reply(wish.getDescriptionForBuyer(), getUserKeyboard);
+            sendApartmentToBuyer(apartment,buyerId);
         }
     }
+
 
     private void sendAllApartmentsToBuyer(Integer buyerId) throws SQLException {
         List<Apartment> apartments = database.getAllApartmentsByBuyerId(buyerId);
@@ -100,14 +97,18 @@ public class BuyerSession extends Session {
             reply("No good apartments.");
         }
         for (Apartment apartment : apartments) {
-            String callback = "getUser " + apartment.seller;
-            InlineKeyboardMarkup getUserKeyboard =
-                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
-            if (apartment.photos.isEmpty()) {
-                reply(apartment.getDescription(), getUserKeyboard);
-            } else {
-                replyWithPhoto(apartment.photos.get(0), apartment.getDescription(), getUserKeyboard);
-            }
+            sendApartmentToBuyer(apartment,buyerId);
+        }
+    }
+    private void sendApartmentToBuyer(Apartment apartment,Integer buyerId){
+        LinkedList<InlineKeyboardButton> buttons = new LinkedList<>();
+        buttons.add(Keyboards.makeInlineButton("Get Contact", "getUser " + apartment.seller));
+        buttons.add(Keyboards.makeInlineButton("Not interest", "ignoreApartment " + buyerId + " " + apartment.databaseId));
+        InlineKeyboardMarkup inlineKeyboardMarkup = Keyboards.makeInlineKeyboardMarkup(buttons);
+        if (apartment.photos.isEmpty()) {
+            reply(apartment.getDescription(), inlineKeyboardMarkup);
+        } else {
+            replyWithPhoto(apartment.photos.get(0), apartment.getDescription(), inlineKeyboardMarkup);
         }
     }
 

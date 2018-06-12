@@ -367,12 +367,13 @@ public class Database {
         statement.execute(sql);
     }
 
-    public List<Wish> getAllWishes(Integer id) throws SQLException {
+    public List<Wish> getAllWishes(Integer sellerId) throws SQLException {
         List<Wish> wishes = new LinkedList<>();
         Statement statement = connection.createStatement();
         String sql =
                 "SELECT * FROM wishes " +
-                        "WHERE added and buyer <> " + id;
+                        "WHERE added and buyer <> " + sellerId + " " +
+                        "AND id not in (SELECT objectId FROM ignoredObjects WHERE type = 'WISH' AND userId = " + sellerId + ")";
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             Wish wish = new Wish();
@@ -395,7 +396,8 @@ public class Database {
                         "WHERE  w.street = a.street AND " +
                         "w.buyer <> " + sellerId + " AND " +
                         "w.added AND a.added AND " +
-                        "w.price >= a.price AND w.square<=a.price";
+                        "w.price >= a.price AND w.square<=a.price " +
+                        "AND w.id not in (SELECT objectId FROM ignoredObjects WHERE type = 'WISH' AND userId = " + sellerId + ")";
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             Wish wish = new Wish();
@@ -409,7 +411,6 @@ public class Database {
         resultSet.close();
         return wishes;
     }
-
 
     public LinkedList<BotUser> getUsersWithApartmentsOnStreet(String street, Integer telegramId) throws SQLException {
         LinkedList<BotUser> users = new LinkedList<>();
@@ -432,15 +433,18 @@ public class Database {
         resultSet.close();
         return users;
     }
+
     public List<Apartment> getSmartApartmentsByBuyerId(Integer buyerId) throws SQLException {
         List<Apartment> apartments = new LinkedList<>();
         Statement statement = connection.createStatement();
         String sql =
                 "SELECT DISTINCT a.* FROM apartments a, wishes w " +
                         "WHERE  w.street = a.street AND " +
-                        "a.seller <> " + buyerId + " " +
+                        "a.seller <> " + buyerId + " AND " +
                         "w.added AND a.added AND " +
-                        "w.price >= a.price AND w.square<=a.price";
+                        "w.price >= a.price AND w.square<=a.square " +
+                        "AND a.id not in (SELECT objectId FROM ignoredObjects WHERE type = 'APARTMENT' AND userId = " + buyerId + ")";
+        System.out.println(sql);
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             Apartment apartment = new Apartment();
@@ -456,12 +460,14 @@ public class Database {
         resultSet.close();
         return apartments;
     }
+
     public List<Apartment> getAllApartmentsByBuyerId(Integer buyerId) throws SQLException {
         List<Apartment> apartments = new LinkedList<>();
         Statement statement = connection.createStatement();
         String sql =
                 "SELECT * FROM apartments a " +
-                        "WHERE seller <> "+buyerId;
+                        "WHERE seller <> " + buyerId +" " +
+                        "AND id not in (SELECT objectId FROM ignoredObjects WHERE type = 'APARTMENT' AND userId = " + buyerId + ")";;
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             Apartment apartment = new Apartment();
@@ -512,5 +518,25 @@ public class Database {
         }
         resultSet.close();
         return users;
+    }
+
+    public void ignoreWish(Integer userId, Integer objectId) throws SQLException {
+        String sql = "INSERT INTO ignoredObjects (userId, objectId, type) " +
+                "VALUES (?, ?, 'WISH')";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, userId);
+        preparedStatement.setInt(2, objectId);
+        preparedStatement.execute();
+        System.out.println(sql);
+    }
+
+    public void ignoreApartment(Integer userId, Integer objectId) throws SQLException {
+        String sql = "INSERT INTO ignoredObjects (userId, objectId, type) " +
+                "VALUES (?, ?, 'APARTMENT')";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, userId);
+        preparedStatement.setInt(2, objectId);
+        preparedStatement.execute();
+        System.out.println(sql);
     }
 }

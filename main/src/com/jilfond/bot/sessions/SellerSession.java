@@ -7,6 +7,7 @@ import com.jilfond.bot.databases.Database;
 import com.jilfond.bot.objects.Wish;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -83,10 +84,7 @@ public class SellerSession extends Session {
             reply("No good wishes.");
         }
         for (Wish wish : wishes) {
-            String callback = "getUser " + wish.buyer;
-            InlineKeyboardMarkup getUserKeyboard =
-                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
-            reply(wish.getDescriptionForBuyer(), getUserKeyboard);
+            sendWishToSeller(wish,sellerId);
         }
     }
 
@@ -96,15 +94,19 @@ public class SellerSession extends Session {
             reply("No good wishes.");
         }
         for (Wish wish : wishes) {
-            String callback = "getUser " + wish.buyer;
-            InlineKeyboardMarkup getUserKeyboard =
-                    Keyboards.makeOneButtonInlineKeyboardMarkup("Get Contact", callback);
-            reply(wish.getDescriptionForBuyer(), getUserKeyboard);
+            sendWishToSeller(wish,sellerId);
         }
     }
 
-    private void sendApartmentsToSeller(Integer id) throws SQLException {
-        LinkedList<Apartment> apartments = database.getApartmentsByTelegramId(id);
+    private void sendWishToSeller(Wish wish, Integer sellerId) {
+        LinkedList<InlineKeyboardButton> buttons = new LinkedList<>();
+        buttons.add(Keyboards.makeInlineButton("Get Contact", "getUser " + wish.buyer));
+        buttons.add(Keyboards.makeInlineButton("Not interest", "ignoreWish " + sellerId + " " + wish.databaseId));
+        reply(wish.getDescriptionForBuyer(), Keyboards.makeInlineKeyboardMarkup(buttons));
+    }
+
+    private void sendApartmentsToSeller(Integer sellerId) throws SQLException {
+        LinkedList<Apartment> apartments = database.getApartmentsByTelegramId(sellerId);
         if (apartments.isEmpty()) {
             reply("No added apartments.");
         }
@@ -226,14 +228,14 @@ public class SellerSession extends Session {
                     }
                 }
                 break;
-                case "CONFIRM":
+            case "CONFIRM":
                 switch (text) {
                     case "Yes":
                         try {
                             database.addApartment(apartment);
                             reply("Done!");
                             sendSelectActionRequest();
-                            apartment.seller=-1;
+                            apartment.seller = -1;
                             new Notifier(apartment, "APARTMENT").start();
                         } catch (SQLException e) {
                             e.printStackTrace();

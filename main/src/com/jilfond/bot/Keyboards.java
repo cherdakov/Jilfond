@@ -16,21 +16,26 @@ public class Keyboards {
     public static ReplyKeyboardMarkup yesBackAndCancel = createYesBackAndCancel();
     public static ReplyKeyboardMarkup start = createOneButtonKeyboard("/start");
 
+    public static InlineKeyboardButton makeInlineButton(String text, String callback){
+        return new InlineKeyboardButton().setText(text).setCallbackData(callback);
+    }
+
     private static ReplyKeyboardMarkup createOneButtonKeyboard(String text) {
         LinkedList<String> buttons = new LinkedList<>();
         buttons.add(text);
         return make(buttons);
     }
 
+    public static InlineKeyboardMarkup makeInlineKeyboardMarkup(List<InlineKeyboardButton> buttons){
+        List<List<InlineKeyboardButton>> listButtons = new LinkedList<>();
+        listButtons.add(buttons);
+        return new InlineKeyboardMarkup().setKeyboard(listButtons);
+    }
+
     public static InlineKeyboardMarkup makeOneButtonInlineKeyboardMarkup(String buttonText, String callbackData){
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton().setCallbackData(callbackData).setText(buttonText);
-        List<List<InlineKeyboardButton>> linkedListLinkedList = new LinkedList<>();
-        List<InlineKeyboardButton> inlineKeyboardButtonLinkedList= new LinkedList<>();
-        inlineKeyboardButtonLinkedList.add(inlineKeyboardButton);
-        linkedListLinkedList.add(inlineKeyboardButtonLinkedList);
-        inlineKeyboardMarkup.setKeyboard(linkedListLinkedList);
-        return inlineKeyboardMarkup;
+        LinkedList<InlineKeyboardButton> buttons = new LinkedList<>();
+        buttons.add(makeInlineButton(buttonText,callbackData));
+        return makeInlineKeyboardMarkup(buttons);
     }
 
     private static ReplyKeyboardMarkup createBackCancelAndNo() {
