@@ -2,10 +2,11 @@ package com.jilfond.bot.objects;
 
 public class Wish {
     public String street = "street";
-    public int price = 0;
-    public int square = 0;
+    public Integer price = 0;
+    public Integer square = 0;
     public Integer buyer = 0;
-    public int databaseId = 0;
+    public Integer databaseId = 0;
+    public Integer rooms = 0;
 
     @Override
     public String toString() {
@@ -13,11 +14,15 @@ public class Wish {
                 "street='" + street + '\'' +
                 ", price=" + price +
                 ", square=" + square +
+                ", buyer=" + buyer +
+                ", databaseId=" + databaseId +
+                ", rooms=" + rooms +
                 '}';
     }
 
-    public String getDescriptionForBuyer() {
+    public String getDescription() {
         return "street = " + street + "\n" +
+               "rooms = " + rooms + "\n" +
                "price = " + price + "\n" +
                "square = " + square;
     }

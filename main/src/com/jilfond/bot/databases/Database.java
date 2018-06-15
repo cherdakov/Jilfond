@@ -23,8 +23,8 @@ public class Database {
 
     public Integer addApartment(Apartment apartment, boolean added) throws SQLException {
         String sql =
-                "insert into apartments (street, houseNumber, number, price, square, seller, added) " +
-                        "values (?, ?, ?, ?, ?, ?, ?)";
+                "insert into apartments (street, houseNumber, number, price, square, seller, added, floor, rooms) " +
+                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, apartment.street);
         preparedStatement.setString(2, apartment.houseNumber);
@@ -33,6 +33,9 @@ public class Database {
         preparedStatement.setInt(5, apartment.square);
         preparedStatement.setInt(6, apartment.seller);
         preparedStatement.setBoolean(7, added);
+
+        preparedStatement.setInt(8, apartment.floor);
+        preparedStatement.setInt(9, apartment.rooms);
         preparedStatement.execute();
         apartment.databaseId = preparedStatement.getGeneratedKeys().getInt(1);
         if (apartment.photos != null) {
@@ -171,6 +174,8 @@ public class Database {
             apartment.price = resultSet.getInt("price");
             apartment.square = resultSet.getInt("square");
             apartment.seller = resultSet.getInt("seller");
+            apartment.floor = resultSet.getInt("floor");
+            apartment.rooms = resultSet.getInt("rooms");
             apartment.databaseId = resultSet.getInt("id");
             Statement photoStatement = connection.createStatement();
             String photoSql = "SELECT * FROM photos " +
@@ -278,6 +283,7 @@ public class Database {
         wish.street = resultSet.getString("street");
         wish.price = resultSet.getInt("price");
         wish.square = resultSet.getInt("square");
+        wish.rooms = resultSet.getInt("rooms");
         wish.databaseId = resultSet.getInt("id");
         wish.buyer = resultSet.getInt("buyer");
         resultSet.close();
@@ -294,6 +300,8 @@ public class Database {
         apartment.houseNumber = resultSet.getString("houseNumber");
         apartment.number = resultSet.getInt("number");
         apartment.price = resultSet.getInt("price");
+        apartment.rooms = resultSet.getInt("rooms");
+        apartment.floor = resultSet.getInt("floor");
         apartment.square = resultSet.getInt("square");
         apartment.seller = resultSet.getInt("seller");
         apartment.databaseId = resultSet.getInt("id");
@@ -333,6 +341,7 @@ public class Database {
             wish.buyer = resultSet.getInt("buyer");
             wish.databaseId = resultSet.getInt("id");
             wish.price = resultSet.getInt("price");
+            wish.rooms = resultSet.getInt("rooms");
             wish.square = resultSet.getInt("square");
             wishes.add(wish);
         }
@@ -346,14 +355,15 @@ public class Database {
 
     public Integer addWish(Wish wish, boolean added) throws SQLException {
         String sql =
-                "insert into wishes (street, price, square, buyer, added) " +
-                        "values (?, ?, ?, ?, ?)";
+                "insert into wishes (street, price, square, buyer, added, rooms) " +
+                        "values (?, ?, ?, ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, wish.street);
         preparedStatement.setInt(2, wish.price);
         preparedStatement.setInt(3, wish.square);
         preparedStatement.setInt(4, wish.buyer);
         preparedStatement.setBoolean(5, added);
+        preparedStatement.setInt(6, wish.rooms);
         preparedStatement.execute();
         wish.databaseId = preparedStatement.getGeneratedKeys().getInt(1);
         return wish.databaseId;
@@ -381,6 +391,7 @@ public class Database {
             wish.buyer = resultSet.getInt("buyer");
             wish.databaseId = resultSet.getInt("id");
             wish.price = resultSet.getInt("price");
+            wish.rooms = resultSet.getInt("rooms");
             wish.square = resultSet.getInt("square");
             wishes.add(wish);
         }
@@ -405,6 +416,7 @@ public class Database {
             wish.buyer = resultSet.getInt("buyer");
             wish.databaseId = resultSet.getInt("id");
             wish.price = resultSet.getInt("price");
+            wish.rooms = resultSet.getInt("rooms");
             wish.square = resultSet.getInt("square");
             wishes.add(wish);
         }
@@ -453,6 +465,8 @@ public class Database {
             apartment.number = resultSet.getInt("number");
             apartment.price = resultSet.getInt("price");
             apartment.square = resultSet.getInt("square");
+            apartment.rooms = resultSet.getInt("rooms");
+            apartment.floor = resultSet.getInt("floor");
             apartment.seller = resultSet.getInt("seller");
             apartment.databaseId = resultSet.getInt("id");
             apartments.add(apartment);
@@ -477,6 +491,8 @@ public class Database {
             apartment.price = resultSet.getInt("price");
             apartment.square = resultSet.getInt("square");
             apartment.seller = resultSet.getInt("seller");
+            apartment.rooms = resultSet.getInt("rooms");
+            apartment.floor = resultSet.getInt("floor");
             apartment.databaseId = resultSet.getInt("id");
             apartment.photos = getPhotosByApartmentId(apartment.databaseId);
             apartments.add(apartment);

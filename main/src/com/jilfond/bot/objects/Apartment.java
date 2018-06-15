@@ -11,6 +11,8 @@ public class Apartment {
     public Integer databaseId = 0;
     public Integer price = 0;
     public Integer square = 0;
+    public Integer floor = 0;
+    public Integer rooms = 0;
     public Integer seller = 0;
     public List<String> photos = new LinkedList<>();
 
@@ -27,6 +29,8 @@ public class Apartment {
                 ", databaseId=" + databaseId +
                 ", price=" + price +
                 ", square=" + square +
+                ", floor=" + floor +
+                ", rooms=" + rooms +
                 ", seller=" + seller +
                 ", photos=" + photos +
                 '}';
@@ -37,6 +41,8 @@ public class Apartment {
                 "houseNumber = " + houseNumber + "\n" +
                 "number = " + number + "\n" +
                 "price = " + price + "\n" +
+                "floor = " + floor + "\n" +
+                "rooms = " + rooms + "\n" +
                 "square = " + square;
     }
 

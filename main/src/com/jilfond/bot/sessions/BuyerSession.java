@@ -179,7 +179,24 @@ public class BuyerSession extends Session {
                     default:
                         try {
                             wish.square = Integer.parseInt(text);
-                            wish.buyer = message.getFrom().getId();
+                            sendSendRoomsRequest();
+                        } catch (NumberFormatException e) {
+                            reply("It is not number :( try again");
+                        }
+                        break;
+                }
+                break;
+            case "SEND_ROOMS":
+                switch (text) {
+                    case "Cancel":
+                        sendSelectActionRequest();
+                        break;
+                    case "Back":
+                        sendSendSquareRequest();
+                        break;
+                    default:
+                        try {
+                            wish.rooms = Integer.parseInt(text);
                             sendConfirmRequest();
                         } catch (NumberFormatException e) {
                             reply("It is not number :( try again");
@@ -224,7 +241,7 @@ public class BuyerSession extends Session {
             String callback = "deleteWish " + wish.databaseId;
             InlineKeyboardMarkup deleteWishKeyboard =
                     Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Wish", callback);
-            reply(wish.getDescriptionForBuyer(), deleteWishKeyboard);
+            reply(wish.getDescription(), deleteWishKeyboard);
         }
     }
 
@@ -233,7 +250,10 @@ public class BuyerSession extends Session {
         reply("Send me square, please", Keyboards.backAndCancel);
         state = "SEND_SQUARE";
     }
-
+    private void sendSendRoomsRequest() {
+        reply("Send me count rooms, please", Keyboards.backAndCancel);
+        state = "SEND_ROOMS";
+    }
 
     private void sendSendPriceRequest() {
         reply("Send me price, please", Keyboards.backAndCancel);

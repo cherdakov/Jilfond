@@ -102,7 +102,7 @@ public class SellerSession extends Session {
         LinkedList<InlineKeyboardButton> buttons = new LinkedList<>();
         buttons.add(Keyboards.makeInlineButton("Get Contact", "getUser " + wish.buyer));
         buttons.add(Keyboards.makeInlineButton("Not interest", "ignoreWish " + sellerId + " " + wish.databaseId));
-        reply(wish.getDescriptionForBuyer(), Keyboards.makeInlineKeyboardMarkup(buttons));
+        reply(wish.getDescription(), Keyboards.makeInlineKeyboardMarkup(buttons));
     }
 
     private void sendApartmentsToSeller(Integer sellerId) throws SQLException {
@@ -114,6 +114,7 @@ public class SellerSession extends Session {
             String callback = "deleteApartment " + apartment.databaseId;
             InlineKeyboardMarkup deleteApartmentKeyboard =
                     Keyboards.makeOneButtonInlineKeyboardMarkup("Delete Apartment", callback);
+
             if (apartment.photos.isEmpty()) {
                 reply(apartment.getDescription(), deleteApartmentKeyboard);
             } else {
@@ -166,6 +167,42 @@ public class SellerSession extends Session {
                     default:
                         try {
                             apartment.number = Integer.valueOf(text);
+                            sendSendRoomsRequest();
+                        } catch (NumberFormatException e) {
+                            reply("It is not number :( try again");
+                        }
+                        break;
+                }
+                break;
+            case "SEND_ROOMS":
+                switch (text) {
+                    case "Cancel":
+                        sendSelectActionRequest();
+                        break;
+                    case "Back":
+                        sendSendApartmentNumberRequest();
+                        break;
+                    default:
+                        try {
+                            apartment.rooms = Integer.parseInt(text);
+                            sendSendFloorRequest();
+                        } catch (NumberFormatException e) {
+                            reply("It is not number :( try again");
+                        }
+                        break;
+                }
+                break;
+            case "SEND_FLOOR":
+                switch (text) {
+                    case "Cancel":
+                        sendSelectActionRequest();
+                        break;
+                    case "Back":
+                        sendSendRoomsRequest();
+                        break;
+                    default:
+                        try {
+                            apartment.floor = Integer.parseInt(text);
                             sendSendPriceRequest();
                         } catch (NumberFormatException e) {
                             reply("It is not number :( try again");
@@ -202,7 +239,7 @@ public class SellerSession extends Session {
                     default:
                         try {
                             apartment.square = Integer.parseInt(text);
-                            apartment.seller = message.getFrom().getId();
+
                             sendAddPicturesRequest();
                         } catch (NumberFormatException e) {
                             reply("It is not number :( try again");
@@ -232,10 +269,10 @@ public class SellerSession extends Session {
                 switch (text) {
                     case "Yes":
                         try {
+                            apartment.seller = message.getFrom().getId();
                             database.addApartment(apartment);
                             reply("Done!");
                             sendSelectActionRequest();
-                            apartment.seller = -1;
                             new Notifier(apartment, "APARTMENT").start();
                         } catch (SQLException e) {
                             e.printStackTrace();
@@ -311,6 +348,15 @@ public class SellerSession extends Session {
         reply("Confirm information", Keyboards.yesBackAndCancel);
         reply(apartment.toString());
         state = "CONFIRM";
+    }
+
+    private void sendSendFloorRequest() {
+        reply("Send me floor, please", Keyboards.backAndCancel);
+        state = "SEND_FLOOR";
+    }
+    private void sendSendRoomsRequest() {
+        reply("Send me count rooms, please", Keyboards.backAndCancel);
+        state = "SEND_ROOMS";
     }
 
     private void sendSelectWishesTypeRequest() {
