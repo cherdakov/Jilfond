@@ -78,6 +78,7 @@ public class Keyboards {
             keyboardRows.add(keyboardButtons);
         }
         replyKeyboardMarkup.setKeyboard(keyboardRows);
+        replyKeyboardMarkup.setResizeKeyboard(true);
         return  replyKeyboardMarkup;
     }
     public static ReplyKeyboardMarkup make(LinkedList<String> buttons){
