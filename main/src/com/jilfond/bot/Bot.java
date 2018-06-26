@@ -79,7 +79,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "522474427:AAHsCXHRTz4UYhOQovlGQdNheAA2qBQh-rY";
+        return "token";
     }
 
     public void sendPicture(Long chatId, String photo, String description, ReplyKeyboard replyKeyboard) {
