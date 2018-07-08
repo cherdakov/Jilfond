@@ -1,36 +1,53 @@
 package com.jilfond.bot.objects;
 
+
 import java.util.LinkedList;
 import java.util.List;
 
 public class Apartment {
-    private String street;
-    public String houseNumber;
-    public Integer apartmentNumber;
-    public Integer price;
-    public Integer square;
-    public Integer seller;
-    List<String> photos = new LinkedList<>();
-
-
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street.replace('\"', '\'');
-    }
+    public String street = "street";
+    public String houseNumber = "houseNumber";
+    public Integer number = 0;
+    public Integer databaseId = 0;
+    public Integer price = 0;
+    public Integer square = 0;
+    public Integer floor = 0;
+    public Integer rooms = 0;
+    public Integer seller = 0;
+    public List<String> photos = new LinkedList<>();
 
     public Apartment() {
+
     }
 
     @Override
     public String toString() {
-        return  "street = " + street + "\n" +
+        return "Apartment{" +
+                "street='" + street + '\'' +
+                ", houseNumber='" + houseNumber + '\'' +
+                ", number=" + number +
+                ", databaseId=" + databaseId +
+                ", price=" + price +
+                ", square=" + square +
+                ", floor=" + floor +
+                ", rooms=" + rooms +
+                ", seller=" + seller +
+                ", photos=" + photos +
+                '}';
+    }
+
+    public String getDescription() {
+        return "street = " + street + "\n" +
                 "houseNumber = " + houseNumber + "\n" +
-                "apartmentNumber = " + apartmentNumber + "\n" +
+                "number = " + number + "\n" +
                 "price = " + price + "\n" +
-                "square = " + square + "\n" +
-                "seller = " + seller + "\n";
+                "floor = " + floor + "\n" +
+                "rooms = " + rooms + "\n" +
+                "square = " + square;
+    }
+
+
+    public void addPhoto(String fileId) {
+        photos.add(fileId);
     }
 }
